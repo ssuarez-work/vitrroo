@@ -1,0 +1,28 @@
+{
+  "name": "vitrroo",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/supabase": "^2.0.8",
+    "nuxt": "^4.4.6",
+    "stripe": "^22.1.1",
+    "vue": "^3.5.34",
+    "vue-router": "^5.0.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.15.2",
+    "@nuxt/icon": "^2.2.2",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "eslint": "^10.4.0"
+  }
+}

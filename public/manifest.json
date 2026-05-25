@@ -1,0 +1,23 @@
+{
+  "name": "Vitrroo",
+  "short_name": "Vitrroo",
+  "description": "Tu catálogo digital para vender por WhatsApp.",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#f8f8fa",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
