@@ -1,18 +1,16 @@
 export default defineNuxtPlugin(() => {
   const supabase = useSupabaseClient()
-  const user = useSupabaseUser()
+  const router = useRouter()
+  const toast = useToast()
 
   const handleSignedOut = () => {
-    const route = useRoute()
-    if (!route.path.startsWith('/admin')) return
-    const toast = useToast()
+    const current = router.currentRoute.value
+    if (!current.path.startsWith('/admin')) return
     toast.info('Tu sesión expiró. Inicia sesión de nuevo.')
-    navigateTo(`/login?next=${encodeURIComponent(route.fullPath)}`)
+    navigateTo(`/login?next=${encodeURIComponent(current.fullPath)}`)
   }
 
   supabase.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_OUT' && user.value === null) {
-      handleSignedOut()
-    }
+    if (event === 'SIGNED_OUT') handleSignedOut()
   })
 })

@@ -308,9 +308,11 @@ export const STORE_THEMES: StoreTheme[] = [
 
 export const DEFAULT_THEME_ID = 'soft'
 
+const DEFAULT_THEME: StoreTheme = STORE_THEMES[0]!
+
 export const findThemeById = (id: string | null | undefined): StoreTheme => {
-  if (!id) return STORE_THEMES[0]
-  return STORE_THEMES.find((theme) => theme.id === id) ?? STORE_THEMES[0]
+  if (!id) return DEFAULT_THEME
+  return STORE_THEMES.find((theme) => theme.id === id) ?? DEFAULT_THEME
 }
 
 export const buildGoogleFontsUrl = (keys: ThemeFontKey[]): string => {

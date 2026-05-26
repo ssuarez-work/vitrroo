@@ -9,8 +9,8 @@ interface Rgb {
 
 const parseHex = (hex: string): Rgb | null => {
   const match = HEX_REGEX.exec(hex.trim())
-  if (!match) return null
-  const value = match[1]
+  const value = match?.[1]
+  if (!value) return null
   return {
     r: parseInt(value.slice(0, 2), 16),
     g: parseInt(value.slice(2, 4), 16),

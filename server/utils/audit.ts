@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import { serverSupabaseServiceRole } from '#supabase/server'
+import type { Json } from '~/types/database.types'
 
 export type AuditAction =
   | 'account.deleted'
@@ -19,7 +20,7 @@ interface AuditOptions {
   storeId?: string | null
   targetType?: string
   targetId?: string
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, Json>
 }
 
 const clientIp = (event: H3Event): string | null => {

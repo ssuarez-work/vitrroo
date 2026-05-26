@@ -1,7 +1,9 @@
 import type Stripe from 'stripe'
 
 const proUntilFromSubscription = (subscription: Stripe.Subscription): string | null => {
-  const periodEnd = subscription.current_period_end
+  const legacyEnd = (subscription as unknown as { current_period_end?: number }).current_period_end
+  const itemEnd = subscription.items.data[0]?.current_period_end
+  const periodEnd = legacyEnd ?? itemEnd
   if (!periodEnd) return null
   return new Date(periodEnd * 1000).toISOString()
 }

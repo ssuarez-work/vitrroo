@@ -10,7 +10,10 @@ export const useStripe = (): Stripe => {
     throw createError({ statusCode: 500, statusMessage: 'STRIPE_SECRET_KEY no está configurada' })
   }
 
-  cachedClient = new Stripe(config.stripeSecretKey, { apiVersion: '2024-09-30.acacia' })
+  type StripeConfig = ConstructorParameters<typeof Stripe>[1]
+  cachedClient = new Stripe(config.stripeSecretKey, {
+    apiVersion: '2024-09-30.acacia' as NonNullable<StripeConfig>['apiVersion']
+  })
   return cachedClient
 }
 

@@ -30,7 +30,9 @@ export default defineEventHandler(async (event) => {
     const { data: summary, error: summaryError } = await admin.rpc('get_weekly_summary', { p_store_id: store.id })
     if (summaryError || !summary || summary.length === 0) continue
 
-    const [row] = summary as SummaryRow[]
+    const rows = summary as SummaryRow[]
+    const row = rows[0]
+    if (!row) continue
     const visits = Number(row.visits ?? 0)
     const clicks = Number(row.whatsapp_clicks ?? 0)
     if (visits === 0 && clicks === 0) continue

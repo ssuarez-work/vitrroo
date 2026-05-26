@@ -76,7 +76,7 @@
               autocapitalize="sentences"
               enterkeyhint="done"
               class="flex-1 min-w-0 px-3 py-3 rounded-lg border border-transparent hover:border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none text-base sm:text-sm font-medium bg-transparent"
-              @change="(event) => handleRename(category, ($event.target as HTMLInputElement).value)"
+              @change="(event) => handleRename(category, (event.target as HTMLInputElement).value)"
             />
 
             <div class="flex flex-col items-center gap-0.5 md:hidden">

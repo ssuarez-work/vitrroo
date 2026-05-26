@@ -55,7 +55,7 @@ export const useSupabaseStore = () => {
       console.error('Error obteniendo productos:', error)
       return []
     }
-    return (data ?? []) as Product[]
+    return (data ?? []) as unknown as Product[]
   }
 
   const reorderProducts = async (storeId: string, orderedIds: string[]): Promise<boolean> => {

@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 definePageMeta({ layout: false })
 
@@ -79,17 +79,16 @@ const isLoading = ref(false)
 const canReset = ref(false)
 const errorMessage = ref('')
 
-onMounted(() => {
-  const { data } = supabase.auth.onAuthStateChange((event) => {
-    if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') canReset.value = true
-  })
-
-  supabase.auth.getSession().then(({ data: sessionData }) => {
-    if (sessionData.session) canReset.value = true
-  })
-
-  onUnmounted(() => data.subscription.unsubscribe())
+const { data: authSubscription } = supabase.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') canReset.value = true
 })
+
+onMounted(async () => {
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (sessionData.session) canReset.value = true
+})
+
+onUnmounted(() => authSubscription.subscription.unsubscribe())
 
 const updatePassword = async () => {
   errorMessage.value = ''

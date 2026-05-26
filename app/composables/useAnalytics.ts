@@ -34,7 +34,8 @@ export const useAnalytics = () => {
       return { visits: 0, whatsapp_clicks: 0 }
     }
 
-    const [row] = data as Array<{ visits: number; whatsapp_clicks: number }>
+    const row = data[0]
+    if (!row) return { visits: 0, whatsapp_clicks: 0 }
     return { visits: Number(row.visits ?? 0), whatsapp_clicks: Number(row.whatsapp_clicks ?? 0) }
   }
 

@@ -18,11 +18,17 @@ export default defineEventHandler(async (event) => {
 
   let customerId = store.stripe_customer_id
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email ?? undefined,
-      metadata: { store_id: store.id, user_id: user.id }
-    })
-    customerId = customer.id
+    const existing = await stripe.customers.list({ email: user.email ?? undefined, limit: 1 })
+    const reusable = existing.data.find((c) => c.metadata?.store_id === store.id)
+    if (reusable) {
+      customerId = reusable.id
+    } else {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        metadata: { store_id: store.id, user_id: user.id }
+      })
+      customerId = customer.id
+    }
     await updateStoreById(event, store.id, { stripe_customer_id: customerId })
   }
 

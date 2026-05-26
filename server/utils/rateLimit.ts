@@ -39,7 +39,7 @@ export const enforceRateLimit = async (
 
   if (current.count >= options.limit) {
     const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000))
-    setHeader(event, 'retry-after', String(retryAfter))
+    setHeader(event, 'retry-after', retryAfter)
     throw createError({
       statusCode: 429,
       statusMessage: 'Demasiadas peticiones. Intenta de nuevo en un momento.'

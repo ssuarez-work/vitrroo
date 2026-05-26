@@ -134,7 +134,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const nextRetry = job.retry_count + 1
-    if (nextRetry >= MAX_RETRIES) {
+    if (nextRetry > MAX_RETRIES) {
       logger.error(`email permanently failed after ${MAX_RETRIES} retries`, {
         jobId: job.id,
         kind: job.kind,
@@ -142,7 +142,7 @@ export default defineEventHandler(async (event) => {
       })
       await admin
         .from('email_queue')
-        .update({ status: 'failed', error_message: result.error, retry_count: nextRetry })
+        .update({ status: 'failed', error_message: result.error, retry_count: job.retry_count })
         .eq('id', job.id)
       failed++
     } else {

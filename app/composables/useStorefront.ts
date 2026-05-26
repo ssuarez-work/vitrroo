@@ -39,9 +39,9 @@ export const useStorefront = () => {
     ])
 
     return {
-      store: store as Store,
-      products: (productsResult.data ?? []) as Product[],
-      categories: (categoriesResult.data ?? []) as Category[]
+      store: store as unknown as Store,
+      products: (productsResult.data ?? []) as unknown as Product[],
+      categories: (categoriesResult.data ?? []) as unknown as Category[]
     }
   }
 

@@ -56,19 +56,8 @@ export const useProductVariants = () => {
 
   const decrementStock = async (variantId: string): Promise<void> => {
     if (!variantId) return
-    const { data } = await supabase
-      .from('product_variants')
-      .select('stock_quantity')
-      .eq('id', variantId)
-      .maybeSingle()
-
-    const current = data?.stock_quantity
-    if (current === null || current === undefined || current <= 0) return
-
-    await supabase
-      .from('product_variants')
-      .update({ stock_quantity: current - 1 })
-      .eq('id', variantId)
+    const { error } = await supabase.rpc('decrement_variant_stock', { p_variant_id: variantId })
+    if (error) console.error('No se pudo decrementar stock:', error.message)
   }
 
   return { listByProduct, replaceAll, decrementStock }

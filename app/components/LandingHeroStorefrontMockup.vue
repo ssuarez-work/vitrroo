@@ -252,7 +252,7 @@ const SAMPLES: Record<string, MockupSample> = {
   }
 }
 
-const FALLBACK_SAMPLE = SAMPLES.soft
+const FALLBACK_SAMPLE = SAMPLES.soft!
 
 const { currentTheme: theme } = useThemeCarousel()
 

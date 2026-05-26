@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { Product, ProductVariant, Store } from '~/types'
 
 const WA_GREEN = '#25D366'
@@ -314,6 +314,10 @@ watch(
 )
 
 const close = () => emit('update:modelValue', false)
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') document.body.style.overflow = ''
+})
 
 const previousImage = () => {
   if (galleryImages.value.length === 0) return

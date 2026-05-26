@@ -1,5 +1,8 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import type { H3Event } from 'h3'
+import type { Database } from '~/types/database.types'
+
+type StoreUpdate = Database['public']['Tables']['stores']['Update']
 
 interface MinimalStore {
   id: string
@@ -37,9 +40,9 @@ export const getStoreByUserId = async (event: H3Event, userId: string): Promise<
 export const updateStoreById = async (
   event: H3Event,
   storeId: string,
-  patch: Record<string, unknown>
+  patch: StoreUpdate
 ): Promise<void> => {
-  const client = serverSupabaseServiceRole(event)
+  const client = serverSupabaseServiceRole<Database>(event)
   const { error } = await client.from('stores').update(patch).eq('id', storeId)
   if (error) {
     throw createError({ statusCode: 500, statusMessage: error.message })
