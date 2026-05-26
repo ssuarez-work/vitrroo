@@ -303,12 +303,13 @@ useSeoMeta({
   twitterImage: seoImage
 })
 
+const runtimeConfig = useRuntimeConfig()
+const baseUrl = runtimeConfig.public.appUrl
+
 const jsonLd = computed(() => {
   if (!data.value) return null
   const store = data.value.store
   const products = data.value.products
-  const config = useRuntimeConfig()
-  const baseUrl = config.public.appUrl
 
   return {
     '@context': 'https://schema.org',
