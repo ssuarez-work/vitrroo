@@ -138,10 +138,24 @@
     </ProFeatureBlock>
   </div>
 
-  <div v-else class="text-center py-20">
-    <Icon name="lucide:alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-    <h2 class="text-xl font-bold text-gray-900">No se encontró tu tienda</h2>
-    <p class="text-gray-500 mt-2">Hubo un error al cargar los datos de tu catálogo.</p>
+  <div v-else class="max-w-md mx-auto text-center py-20">
+    <div class="w-16 h-16 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-5">
+      <Icon name="lucide:store" class="w-8 h-8" />
+    </div>
+    <h2 class="text-xl font-bold text-gray-900">Falta configurar tu tienda</h2>
+    <p class="text-gray-500 mt-2 mb-6">
+      Crea tu catálogo y empieza a recibir pedidos por WhatsApp en minutos.
+    </p>
+    <button
+      type="button"
+      :disabled="isCreatingStore"
+      class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 active:bg-brand-700 transition-colors shadow-md min-h-12 disabled:opacity-60"
+      @click="createStore"
+    >
+      <Icon v-if="isCreatingStore" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+      <Icon v-else name="lucide:plus" class="w-4 h-4" />
+      Crear mi tienda
+    </button>
   </div>
 </template>
 
@@ -174,6 +188,19 @@ const host = ref('')
 const selectedDays = ref(30)
 const isOnboardingDismissed = ref(false)
 const hasSharedOnce = ref(false)
+const isCreatingStore = ref(false)
+
+const createStore = async () => {
+  if (isCreatingStore.value) return
+  isCreatingStore.value = true
+  try {
+    await $fetch('/api/user/create-store', { method: 'POST' })
+    if (typeof window !== 'undefined') window.location.reload()
+  } catch {
+    toast.error('No pudimos crear tu tienda. Intenta de nuevo.')
+    isCreatingStore.value = false
+  }
+}
 
 const { limits, isOnTrial, trialDays } = usePlanLimits(store)
 

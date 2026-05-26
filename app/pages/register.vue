@@ -84,12 +84,21 @@
         <NuxtLink to="/login" class="font-semibold text-gray-900 hover:text-brand-600 transition-colors">Inicia sesión</NuxtLink>
       </p>
 
-      <p class="text-center text-[11px] text-gray-400 mt-4 leading-relaxed">
-        Al registrarte aceptas nuestros
-        <NuxtLink to="/terms" class="underline">Términos</NuxtLink>
-        y
-        <NuxtLink to="/privacy" class="underline">Política de Privacidad</NuxtLink>.
-      </p>
+      <div class="text-[11px] text-gray-500 mt-4 leading-relaxed bg-gray-50 border border-[#f0f0f2] rounded-xl p-3">
+        <p class="font-semibold text-gray-700 mb-1">Aviso de privacidad simplificado</p>
+        <p>
+          Vitrroo (México) recolecta tu correo, nombre y datos de tu tienda para operar el servicio y enviarte
+          correos transaccionales. No vendemos tus datos. Puedes ejercer derechos ARCO desde "Mi cuenta" o
+          escribiendo a <a href="mailto:hola@vitrroo.com" class="underline">hola@vitrroo.com</a>.
+          <NuxtLink to="/privacy" class="underline font-semibold">Ver aviso integral</NuxtLink>.
+        </p>
+        <p class="mt-2">
+          Al registrarte aceptas los
+          <NuxtLink to="/terms" class="underline">Términos</NuxtLink>
+          y la
+          <NuxtLink to="/privacy" class="underline">Política de Privacidad</NuxtLink>.
+        </p>
+      </div>
     </div>
   </div>
 </template>

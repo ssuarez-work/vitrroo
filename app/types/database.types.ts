@@ -280,6 +280,18 @@ export interface Database {
         Args: { p_variant_id: string }
         Returns: number | null
       }
+      purge_old_events: {
+        Args: { p_days_to_keep?: number }
+        Returns: number
+      }
+      purge_old_audit_logs: {
+        Args: { p_days_to_keep?: number }
+        Returns: number
+      }
+      purge_old_email_jobs: {
+        Args: { p_days_to_keep?: number }
+        Returns: number
+      }
     }
     Enums: {
       store_plan: 'free' | 'pro'

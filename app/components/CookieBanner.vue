@@ -33,32 +33,39 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 const STORAGE_KEY = 'vitrroo-cookies-consent'
-const isVisible = ref(false)
+const STOREFRONT_RESERVED_PATHS = ['admin', 'login', 'register', 'forgot-password', 'reset-password', 'terms', 'privacy', 'auth']
+
+const route = useRoute()
+const hasInteracted = ref(false)
+const isMounted = ref(false)
+
+const isPublicStorefront = computed(() => {
+  const segments = route.path.split('/').filter(Boolean)
+  if (segments.length !== 1) return false
+  const first = segments[0] ?? ''
+  return first.length > 0 && !STOREFRONT_RESERVED_PATHS.includes(first)
+})
+
+const isVisible = computed(() => isMounted.value && !hasInteracted.value && !isPublicStorefront.value)
 
 const setConsent = (value: 'accepted' | 'rejected') => {
   if (typeof window === 'undefined') return
   window.localStorage.setItem(STORAGE_KEY, value)
   window.dispatchEvent(new CustomEvent('vitrroo:cookies-consent', { detail: { value } }))
+  hasInteracted.value = true
 }
 
 onMounted(() => {
   if (typeof window === 'undefined') return
-  const consent = window.localStorage.getItem(STORAGE_KEY)
-  if (!consent) isVisible.value = true
+  hasInteracted.value = Boolean(window.localStorage.getItem(STORAGE_KEY))
+  isMounted.value = true
 })
 
-const accept = () => {
-  setConsent('accepted')
-  isVisible.value = false
-}
-
-const reject = () => {
-  setConsent('rejected')
-  isVisible.value = false
-}
+const accept = () => setConsent('accepted')
+const reject = () => setConsent('rejected')
 </script>
 
 <style scoped>

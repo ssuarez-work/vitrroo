@@ -149,6 +149,20 @@ export const renderTrialEndingSoonEmail = (params: {
   return { subject: 'Tu trial de Vitrroo Pro termina pronto', html }
 }
 
+export const renderSubscriptionCancelledEmail = (params: {
+  storeName: string
+  billingUrl: string
+}): EmailTemplate => {
+  const html = wrapper(`
+    <h1 style="font-size: 22px; margin-bottom: 16px;">Tu suscripción Pro fue cancelada</h1>
+    <p style="margin: 0 0 16px; color: #555;">Hola, ${escapeHtml(params.storeName)}. Confirmamos la cancelación de tu plan Pro.</p>
+    <p style="margin: 0 0 16px; color: #555;">Tu tienda sigue activa en plan Free. Algunos productos pueden haberse desactivado para respetar el límite del plan; puedes reactivarlos manualmente desde el panel.</p>
+    <p style="margin: 0 0 24px; color: #555;">Si fue un error o quieres volver, puedes reactivar Pro en cualquier momento.</p>
+    ${ctaButton('Reactivar Pro', params.billingUrl)}
+  `)
+  return { subject: 'Tu suscripción Pro de Vitrroo fue cancelada', html }
+}
+
 export const renderTrialExpiredEmail = (params: {
   storeName: string
   billingUrl: string

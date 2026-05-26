@@ -129,16 +129,24 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 }
 
+const notifyCopyResult = (ok: boolean, successMessage: string) => {
+  if (ok) {
+    toast.success(successMessage)
+    return
+  }
+  toast.error('No se pudo copiar.')
+}
+
 const copyCode = async () => {
   if (!referralCode.value) return
   const ok = await copyToClipboard(referralCode.value)
-  ok ? toast.success('Código copiado.') : toast.error('No se pudo copiar.')
+  notifyCopyResult(ok, 'Código copiado.')
 }
 
 const copyLink = async () => {
   if (!referralUrl.value) return
   const ok = await copyToClipboard(referralUrl.value)
-  ok ? toast.success('Enlace copiado.') : toast.error('No se pudo copiar.')
+  notifyCopyResult(ok, 'Enlace copiado.')
 }
 
 const shareLink = async () => {

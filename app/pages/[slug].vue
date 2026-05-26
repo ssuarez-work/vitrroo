@@ -277,9 +277,15 @@ watch(
 
 onBeforeUnmount(resetRoot)
 
+const absoluteImageUrl = (raw: string | null | undefined): string | undefined => {
+  if (!raw) return undefined
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw
+  return `${baseUrl.replace(/\/$/, '')}${raw.startsWith('/') ? raw : `/${raw}`}`
+}
+
 const seoTitle = computed(() => data.value ? `${data.value.store.name} | Vitrroo` : 'Tienda no encontrada | Vitrroo')
 const seoDescription = computed(() => data.value?.store.description ?? 'Catálogo digital para pedidos por WhatsApp.')
-const seoImage = computed(() => data.value?.store.logo_url ?? undefined)
+const seoImage = computed(() => absoluteImageUrl(data.value?.store.logo_url))
 
 const fontHref = computed(() => fontsUrl(theme.value))
 

@@ -65,6 +65,9 @@ const renderEmail = (kind: string, store: StoreRow, payload: Record<string, unkn
   if (kind === 'trial_expired') {
     return renderTrialExpiredEmail({ storeName: store.name, billingUrl: buildBillingUrl() })
   }
+  if (kind === 'subscription_cancelled') {
+    return renderSubscriptionCancelledEmail({ storeName: store.name, billingUrl: buildBillingUrl() })
+  }
   return null
 }
 

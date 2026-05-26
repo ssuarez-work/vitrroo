@@ -4,7 +4,6 @@ const PRODUCT_SELECT = '*, product_variants(*), product_images(*)'
 
 export const useSupabaseStore = () => {
   const supabase = useSupabaseClient()
-  const { withRandomSuffix } = useSlug()
 
   const getMyStore = async (): Promise<Store | null> => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -21,24 +20,7 @@ export const useSupabaseStore = () => {
       return null
     }
 
-    if (data) return data as Store
-
-    return createDefaultStore(user.id, user.email ?? null)
-  }
-
-  const createDefaultStore = async (userId: string, email: string | null): Promise<Store | null> => {
-    const seed = email?.split('@')[0] ?? 'tienda'
-    const { data, error } = await supabase
-      .from('stores')
-      .insert({ user_id: userId, name: 'Mi Tienda', slug: withRandomSuffix(seed) })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error auto-creando la tienda:', error)
-      return null
-    }
-    return data as Store
+    return data as Store | null
   }
 
   const getMyProducts = async (storeId: string): Promise<Product[]> => {

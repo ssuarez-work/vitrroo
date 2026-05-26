@@ -1,4 +1,20 @@
 import type Stripe from 'stripe'
+import type { H3Event } from 'h3'
+import { serverSupabaseServiceRole } from '#supabase/server'
+import type { Database } from '~/types/database.types'
+
+const enqueueDowngradeEmail = async (event: H3Event, storeId: string): Promise<void> => {
+  try {
+    const admin = serverSupabaseServiceRole<Database>(event)
+    await admin.from('email_queue').insert({
+      store_id: storeId,
+      kind: 'subscription_cancelled',
+      payload: {}
+    })
+  } catch (error) {
+    captureError(error, { scope: 'webhook:enqueue-downgrade-email', storeId })
+  }
+}
 
 const proUntilFromSubscription = (subscription: Stripe.Subscription): string | null => {
   const legacyEnd = (subscription as unknown as { current_period_end?: number }).current_period_end
@@ -40,6 +56,7 @@ const handleSubscriptionDeleted = async (event: any, subscription: Stripe.Subscr
     stripe_subscription_id: null
   })
   await runDowngradeCleanup(event, store.id)
+  await enqueueDowngradeEmail(event, store.id)
 
   await recordAudit(event, 'billing.subscription_cancelled', {
     userId: store.user_id,

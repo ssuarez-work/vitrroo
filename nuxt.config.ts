@@ -1,13 +1,30 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
 
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxt/icon',
     '@nuxtjs/supabase',
-    '@nuxt/eslint'
+    '@nuxt/eslint',
+    '@nuxt/image'
   ],
+
+  image: {
+    quality: 80,
+    format: ['webp', 'avif', 'jpg'],
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280
+    },
+    domains: ['images.unsplash.com', 'images.pexels.com'],
+    alias: {
+      supabase: process.env.SUPABASE_URL ?? ''
+    }
+  },
 
   supabase: {
     redirect: false
