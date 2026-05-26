@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative overflow-hidden rounded-[var(--store-card-radius)] cursor-pointer btn-press group aspect-[4/5] bg-gray-200"
+    class="relative overflow-hidden rounded-[var(--store-card-radius)] cursor-pointer btn-press group aspect-[4/5] bg-gray-200 md:transition-transform md:duration-200 md:hover:-translate-y-1 md:hover:shadow-xl"
     @click="$emit('click')"
   >
     <img
@@ -21,11 +21,11 @@
       Destacado
     </div>
 
-    <div class="absolute inset-x-0 bottom-0 p-5 text-white">
-      <h3 class="font-[var(--store-heading-font)] text-2xl font-semibold leading-tight mb-1 line-clamp-2">
+    <div class="absolute inset-x-0 bottom-0 p-5 md:p-7 text-white">
+      <h3 class="font-[var(--store-heading-font)] text-2xl md:text-3xl lg:text-4xl font-semibold leading-tight mb-1 md:mb-2 line-clamp-2">
         {{ product.name }}
       </h3>
-      <p class="text-lg font-bold opacity-95">${{ fromCents(product.price) }}</p>
+      <p class="text-lg md:text-xl lg:text-2xl font-bold opacity-95">${{ fromCents(product.price) }}</p>
     </div>
   </div>
 </template>

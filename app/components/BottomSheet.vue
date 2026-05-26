@@ -7,14 +7,14 @@
         <Transition name="slide-up">
           <div
             v-if="modelValue"
-            class="relative w-full max-w-md mx-auto shadow-modal flex flex-col max-h-[90vh] overflow-hidden"
+            class="relative w-full max-w-md md:max-w-lg lg:max-w-2xl mx-auto shadow-modal flex flex-col max-h-[90vh] md:max-h-[88vh] lg:max-h-[85vh] overflow-hidden"
             :style="sheetStyle"
           >
             <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" @click="close">
               <div class="w-12 h-1.5 rounded-full" :style="handleStyle"></div>
             </div>
 
-            <div class="overflow-y-auto px-6 pb-36 scrollbar-hide">
+            <div class="overflow-y-auto px-6 md:px-8 lg:px-10 pb-36 md:pb-32 scrollbar-hide">
               <div :class="['aspect-square overflow-hidden mb-3 relative', mediaClass]" :style="mediaStyle">
                 <img
                   v-if="currentImage"
@@ -60,8 +60,8 @@
                 ></button>
               </div>
 
-              <h2 class="text-2xl mb-1.5 leading-tight" :style="titleStyle">{{ product?.name }}</h2>
-              <p class="text-xl font-bold mb-6" :style="priceStyle">${{ fromCents(product?.price ?? 0) }}</p>
+              <h2 class="text-2xl md:text-3xl lg:text-4xl mb-1.5 md:mb-2 leading-tight" :style="titleStyle">{{ product?.name }}</h2>
+              <p class="text-xl md:text-2xl lg:text-3xl font-bold mb-6 md:mb-8" :style="priceStyle">${{ fromCents(product?.price ?? 0) }}</p>
 
               <div v-if="variants.length > 0" class="mb-6">
                 <label class="block text-sm font-semibold mb-3" :style="labelStyle">Selecciona una variante</label>
@@ -100,11 +100,11 @@
               </div>
             </div>
 
-            <div class="absolute bottom-0 left-0 right-0 p-5 safe-bottom" :style="footerStyle">
+            <div class="absolute bottom-0 left-0 right-0 p-5 md:p-6 lg:p-8 safe-bottom" :style="footerStyle">
               <button
                 v-if="canOrder"
                 type="button"
-                class="w-full py-4 text-lg font-semibold inline-flex items-center justify-center gap-2 shadow-wa transition-all active:scale-[0.98]"
+                class="w-full py-4 md:py-5 text-lg md:text-xl font-semibold inline-flex items-center justify-center gap-2 md:gap-3 shadow-wa transition-all active:scale-[0.98]"
                 :style="ctaStyle"
                 @click="sendWhatsApp"
               >

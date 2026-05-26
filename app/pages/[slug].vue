@@ -26,8 +26,8 @@
   <div v-else :class="['pb-10', densityClass, bodyFontClass]" :style="bodyStyle">
     <StorefrontHeader :store="data.store" :variant="theme.headerVariant" />
 
-    <nav v-if="categoryFilters.length > 1" class="px-5 mb-5">
-      <div class="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+    <nav v-if="categoryFilters.length > 1" class="px-5 md:px-8 lg:px-10 mb-5 md:mb-7">
+      <div class="flex gap-2 md:gap-2.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
         <button
           v-for="filter in categoryFilters"
           :key="filter.id"
@@ -40,11 +40,11 @@
       </div>
     </nav>
 
-    <main :class="['px-5 space-y-8', isDarkTheme ? 'text-white/95' : '']">
+    <main :class="['px-5 md:px-8 lg:px-10 space-y-8 md:space-y-12', isDarkTheme ? 'text-white/95' : '']">
       <section v-if="showFeatured" class="-mx-1">
-        <div class="flex items-center gap-2 mb-3 px-1">
-          <Icon name="lucide:sparkles" class="w-4 h-4 text-brand-500" />
-          <h2 class="text-xs font-bold uppercase tracking-wider text-[var(--store-text)]">Destacados</h2>
+        <div class="flex items-center gap-2 mb-3 md:mb-4 px-1">
+          <Icon name="lucide:sparkles" class="w-4 h-4 md:w-5 md:h-5 text-brand-500" />
+          <h2 class="text-xs md:text-sm font-bold uppercase tracking-wider text-[var(--store-text)]">Destacados</h2>
         </div>
         <div :class="['px-1', gridClasses]">
           <ProductCard
@@ -60,7 +60,7 @@
       <section v-for="group in visibleGroups" :key="group.id">
         <h2
           v-if="visibleGroups.length > 1"
-          :class="['mb-3', sectionTitleClass]"
+          :class="['mb-3 md:mb-5', sectionTitleClass]"
           :style="sectionTitleStyle"
         >
           {{ group.name }}
@@ -76,13 +76,13 @@
         </div>
       </section>
 
-      <div v-if="!hasAnyProduct" class="text-center py-16">
-        <Icon name="lucide:package-open" class="w-10 h-10 text-gray-300 mx-auto mb-3" />
+      <div v-if="!hasAnyProduct" class="text-center py-16 md:py-24">
+        <Icon name="lucide:package-open" class="w-10 h-10 md:w-12 md:h-12 text-gray-300 mx-auto mb-3" />
         <p class="text-[var(--store-text-muted)] font-medium">Aún no hay productos disponibles.</p>
       </div>
     </main>
 
-    <footer v-if="!isPro" class="mt-12 px-5 text-center safe-bottom">
+    <footer v-if="!isPro" class="mt-12 md:mt-16 px-5 md:px-8 text-center safe-bottom">
       <a
         href="/"
         class="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--store-text-muted)] hover:opacity-100 opacity-70 transition-opacity"
@@ -146,14 +146,14 @@ const isDarkTheme = computed(() => theme.value.isDark)
 const gridClasses = computed(() => {
   switch (theme.value.layout) {
     case 'grid-3':
-      return 'grid grid-cols-2 sm:grid-cols-3 gap-2.5'
+      return 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 md:gap-4'
     case 'single':
-      return 'flex flex-col gap-5'
+      return 'grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6'
     case 'list':
-      return 'flex flex-col gap-2.5'
+      return 'flex flex-col gap-2.5 md:gap-3'
     case 'grid-2':
     default:
-      return 'grid grid-cols-2 gap-3.5'
+      return 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 md:gap-5'
   }
 })
 
@@ -176,9 +176,9 @@ const bodyStyle = computed(() => ({
 
 const sectionTitleClass = computed(() => {
   if (theme.value.headingFont === 'cormorant' || theme.value.headingFont === 'playfair' || theme.value.headingFont === 'dm-serif') {
-    return 'text-xl font-semibold text-[var(--store-text)]'
+    return 'text-xl md:text-2xl lg:text-3xl font-semibold text-[var(--store-text)]'
   }
-  return 'text-sm font-bold uppercase tracking-wide text-[var(--store-text)]'
+  return 'text-sm md:text-base font-bold uppercase tracking-wide text-[var(--store-text)]'
 })
 
 const sectionTitleStyle = computed(() => ({

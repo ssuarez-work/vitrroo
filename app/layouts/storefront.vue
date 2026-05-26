@@ -1,6 +1,9 @@
 <template>
   <div class="min-h-[100dvh] selection:bg-brand-100 selection:text-brand-700" :style="outerStyle">
-    <div class="max-w-md mx-auto min-h-[100dvh] relative shadow-sm border-x border-[#f0f0f2]" :style="innerStyle">
+    <div
+      class="mx-auto min-h-[100dvh] relative w-full max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl shadow-sm md:shadow-xl md:my-6 lg:my-10 md:rounded-3xl md:overflow-hidden border-x border-[#f0f0f2] md:border"
+      :style="innerStyle"
+    >
       <slot />
     </div>
   </div>
