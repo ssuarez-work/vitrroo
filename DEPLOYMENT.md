@@ -8,7 +8,7 @@ Pasos obligatorios antes y después del primer deploy a producción.
 
 - [ ] Supabase: proyecto creado, plan **Pro o superior** (para backups PITR de 7 días).
 - [ ] Stripe: cuenta verificada en modo **Live**, no Test.
-- [ ] Stripe Products en modo Live: "Vitrroo Pro Mensual" ($149 MXN) y "Vitrroo Pro Anual" ($1290 MXN). Anota los `price_live_...`.
+- [ ] Stripe Products en modo Live: "Vitrroo Pro Mensual" ($99 MXN) y "Vitrroo Pro Anual" ($890 MXN). Anota los `price_live_...`.
 - [ ] Resend: cuenta y dominio verificado (3 registros DNS en verde).
 - [ ] Sentry (opcional pero recomendado): proyecto Node, copia el DSN.
 - [ ] UptimeRobot o BetterStack: pendiente, se configura post-deploy.

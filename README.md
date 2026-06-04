@@ -71,8 +71,8 @@ Ver `.env.example`. En producción:
 
 ### Stripe
 
-1. Crea producto **Vitrroo Pro Mensual** ($149 MXN/mes) y copia el `price_xxx`.
-2. Crea producto **Vitrroo Pro Anual** ($1,290 MXN/año) y copia el `price_xxx`.
+1. Crea producto **Vitrroo Pro Mensual** ($99 MXN/mes) y copia el `price_xxx`.
+2. Crea producto **Vitrroo Pro Anual** ($890 MXN/año) y copia el `price_xxx`.
 3. Webhook → `https://tu-dominio.com/api/billing/webhook` escuchando:
    - `checkout.session.completed`
    - `customer.subscription.created`

@@ -213,8 +213,9 @@
             <h3 class="text-xl md:text-2xl font-bold text-white mb-2">Pro</h3>
             <p class="text-gray-400 mb-5 md:mb-6">Para vendedores con catálogo grande.</p>
             <div class="mb-6 md:mb-8">
-              <span class="text-4xl md:text-5xl font-extrabold text-white">$149</span>
+              <span class="text-4xl md:text-5xl font-extrabold text-white">$99</span>
               <span class="text-base md:text-lg text-gray-400 font-medium"> MXN/mes</span>
+              <p class="text-xs text-brand-400 font-semibold mt-2">o $890 MXN/año (ahorra 25%)</p>
             </div>
             <ul class="space-y-3 md:space-y-4 mb-6 md:mb-8">
               <li class="flex items-center gap-3 text-gray-300 font-medium"><Icon name="lucide:check" class="w-5 h-5 text-brand-400" /> Productos ilimitados</li>

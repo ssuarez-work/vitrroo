@@ -207,7 +207,7 @@ const checkoutOptions: CheckoutOption[] = [
     interval: 'monthly',
     title: 'Pro Mensual',
     subtitle: 'Sin compromiso. Cancela cuando quieras.',
-    amount: '149',
+    amount: '99',
     suffix: 'MXN / mes',
     cta: 'Pasar a Pro',
     highlight: false
@@ -215,8 +215,8 @@ const checkoutOptions: CheckoutOption[] = [
   {
     interval: 'annual',
     title: 'Pro Anual',
-    subtitle: 'Ahorra 28% pagando el año completo.',
-    amount: '1,290',
+    subtitle: 'Ahorra 25% pagando el año completo.',
+    amount: '890',
     suffix: 'MXN / año',
     cta: 'Elegir anual',
     highlight: true
