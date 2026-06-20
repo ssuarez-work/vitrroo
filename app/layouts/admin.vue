@@ -28,10 +28,6 @@
           <Icon name="lucide:sparkles" class="w-5 h-5 icon" />
           Plan
         </NuxtLink>
-        <NuxtLink to="/admin/referrals" class="sidebar-link" exact-active-class="active">
-          <Icon name="lucide:gift" class="w-5 h-5 icon" />
-          Referidos
-        </NuxtLink>
         <NuxtLink to="/admin/account" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:user" class="w-5 h-5 icon" />
           Mi cuenta

@@ -99,30 +99,6 @@
         </ul>
       </section>
 
-      <section class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-[#f0f0f2] p-5 md:p-6">
-        <h3 class="text-base md:text-lg font-bold text-gray-900 mb-2">Aplicar código de referido</h3>
-        <p class="text-sm text-gray-500 mb-4">Si alguien te invitó a Vitrroo, ingresa su código y ambos obtendrán 30 días Pro gratis.</p>
-        <form class="flex flex-col sm:flex-row gap-3" @submit.prevent="redeemReferralCode">
-          <input
-            v-model="referralInput"
-            type="text"
-            maxlength="32"
-            autocapitalize="none"
-            autocomplete="off"
-            spellcheck="false"
-            class="form-input flex-1 font-mono"
-            placeholder="Ingresa el código"
-          />
-          <button
-            type="submit"
-            :disabled="isRedeeming || referralInput.trim().length === 0"
-            class="px-5 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 active:bg-gray-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 min-h-12"
-          >
-            <Icon v-if="isRedeeming" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-            Aplicar
-          </button>
-        </form>
-      </section>
     </template>
   </div>
 </template>
@@ -158,7 +134,6 @@ const proBenefits = [
   'Soporte prioritario por WhatsApp'
 ]
 
-const supabase = useSupabaseClient()
 const { getMyStore } = useSupabaseStore()
 const toast = useToast()
 
@@ -166,8 +141,6 @@ const isLoading = ref(true)
 const store = ref<Store | null>(null)
 const isCheckingOut = ref<CheckoutInterval | null>(null)
 const isOpeningPortal = ref(false)
-const referralInput = ref('')
-const isRedeeming = ref(false)
 
 const { isPro, isOnTrial, trialDays } = usePlanLimits(store)
 
@@ -281,27 +254,6 @@ const openCustomerPortal = async () => {
   } finally {
     isOpeningPortal.value = false
   }
-}
-
-const redeemReferralCode = async () => {
-  if (!store.value) return
-  const code = referralInput.value.trim().toLowerCase()
-  if (!code) return
-
-  isRedeeming.value = true
-  const { data, error } = await supabase.rpc('redeem_referral', {
-    p_code: code,
-    p_referred_store_id: store.value.id
-  })
-  isRedeeming.value = false
-
-  if (error || data !== true) {
-    toast.error('Código inválido o ya canjeado.')
-    return
-  }
-  toast.success('¡Listo! Recibiste 30 días Pro gratis.')
-  referralInput.value = ''
-  store.value = await getMyStore()
 }
 
 useHead({ title: 'Plan | Admin Vitrroo' })

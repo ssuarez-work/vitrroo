@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
 
 definePageMeta({ layout: false })
 
@@ -114,18 +114,12 @@ const UNIQUE_VIOLATION = '23505'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const route = useRoute()
 const { withRandomSuffix } = useSlug()
 
 const form = ref({ storeName: '', email: '', password: '' })
 const isLoading = ref(false)
 const errorMessage = ref('')
 const infoMessage = ref('')
-const referralCode = computed(() => {
-  const raw = route.query.ref
-  if (typeof raw !== 'string') return null
-  return raw.toLowerCase().trim() || null
-})
 
 const redirectIfAuthenticated = () => {
   if (user.value) navigateTo('/admin')
@@ -150,15 +144,6 @@ const createStoreForUser = async (userId: string, storeName: string): Promise<st
     }
   }
   return null
-}
-
-const tryRedeemReferral = async (storeId: string): Promise<void> => {
-  if (!referralCode.value) return
-  const { error } = await supabase.rpc('redeem_referral', {
-    p_code: referralCode.value,
-    p_referred_store_id: storeId
-  })
-  if (error) console.warn('No se pudo aplicar el código de referido:', error.message)
 }
 
 const friendlyAuthError = (raw: string): string => {
@@ -206,11 +191,8 @@ const handleRegister = async () => {
       errorMessage.value = 'Cuenta creada, pero falló al crear la tienda. Contacta soporte.'
       return
     }
-    await tryRedeemReferral(storeId)
-    isLoading.value = false
-  } else {
-    isLoading.value = false
   }
+  isLoading.value = false
 }
 
 useNoIndex()

@@ -44,6 +44,7 @@ Aplica en orden en Supabase Dashboard → SQL Editor:
 7. `00007_audit_retries_storage.sql`
 8. `00008_atomic_stock_and_email_dedup.sql`
 9. `00009_retention_and_downgrade_email.sql`
+10. `00010_remove_referrals.sql`
 
 ### Supabase Dashboard
 

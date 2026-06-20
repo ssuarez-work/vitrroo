@@ -49,14 +49,13 @@ stripe listen --forward-to localhost:3000/api/billing/webhook
 
 ## Modelo de datos
 
-- `stores`: una por usuario, slug único, plan, trial, theme, referral_code, is_published.
+- `stores`: una por usuario, slug único, plan, trial, theme, is_published.
 - `products`: nombre, precio (en centavos), category_id, sort_order, is_active, is_pinned, custom_wa_message.
 - `product_variants`: label + stock_quantity nullable + sort_order.
 - `product_images`: galería de hasta 5 imágenes por producto (Pro).
 - `categories`: por tienda con sort_order.
 - `store_events`: visitas y clics WhatsApp (analytics).
 - `email_queue`: cola con retry exponencial.
-- `referrals`: programa de referidos.
 - `audit_logs`: trazabilidad de acciones críticas.
 
 ## Producción — configuración externa

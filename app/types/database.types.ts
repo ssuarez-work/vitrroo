@@ -17,7 +17,6 @@ type StoreRow = {
   stripe_subscription_id: string | null
   theme_color: string | null
   theme_id: string | null
-  referral_code: string | null
   is_published: boolean
   welcome_email_sent_at: Timestamp | null
   trial_warning_sent_at: Timestamp | null
@@ -40,7 +39,6 @@ type StoreInsert = {
   stripe_subscription_id?: string | null
   theme_color?: string | null
   theme_id?: string | null
-  referral_code?: string | null
   is_published?: boolean
   welcome_email_sent_at?: Timestamp | null
   trial_warning_sent_at?: Timestamp | null
@@ -170,24 +168,6 @@ type EmailQueueInsert = {
   created_at?: Timestamp
 }
 
-type ReferralRow = {
-  id: string
-  referrer_store_id: string
-  referred_store_id: string
-  code: string
-  rewarded_at: Timestamp | null
-  created_at: Timestamp
-}
-
-type ReferralInsert = {
-  id?: string
-  referrer_store_id: string
-  referred_store_id: string
-  code: string
-  rewarded_at?: Timestamp | null
-  created_at?: Timestamp
-}
-
 type AuditLogRow = {
   id: number
   user_id: string | null
@@ -231,7 +211,6 @@ export interface Database {
       product_images: Table<ProductImageRow, ProductImageInsert>
       store_events: Table<StoreEventRow, StoreEventInsert>
       email_queue: Table<EmailQueueRow, EmailQueueInsert>
-      referrals: Table<ReferralRow, ReferralInsert>
       audit_logs: Table<AuditLogRow, AuditLogInsert>
     }
     Views: Record<string, never>
@@ -259,10 +238,6 @@ export interface Database {
       reorder_categories: {
         Args: { p_store_id: string, p_ordered_ids: string[] }
         Returns: null
-      }
-      redeem_referral: {
-        Args: { p_code: string, p_referred_store_id: string }
-        Returns: boolean
       }
       is_store_pro: {
         Args: { p_store_id: string }
