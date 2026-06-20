@@ -213,6 +213,7 @@ const handleRegister = async () => {
   }
 }
 
-useHead({ title: 'Crear cuenta | Vitrroo' })
+useNoIndex()
+useHead({ title: 'Crear cuenta · Vitrroo' })
 </script>
 

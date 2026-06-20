@@ -116,6 +116,7 @@ const updatePassword = async () => {
   navigateTo('/login')
 }
 
-useHead({ title: 'Nueva contraseña | Vitrroo' })
+useNoIndex()
+useHead({ title: 'Nueva contraseña · Vitrroo' })
 </script>
 

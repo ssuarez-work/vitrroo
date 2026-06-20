@@ -74,8 +74,11 @@ definePageMeta({ layout: false })
 
 const lastUpdated = '21 de mayo de 2026'
 
+useCanonical()
 useSeoMeta({
-  title: 'Política de Privacidad | Vitrroo',
-  description: 'Cómo Vitrroo recolecta y protege tus datos personales.'
+  title: 'Política de Privacidad · Vitrroo',
+  description: 'Cómo Vitrroo recolecta, usa y protege tus datos personales bajo la LFPDPPP de México. Derechos ARCO, retención y eliminación de cuenta.',
+  ogTitle: 'Política de Privacidad · Vitrroo',
+  ogDescription: 'Cómo Vitrroo recolecta y protege tus datos personales.'
 })
 </script>

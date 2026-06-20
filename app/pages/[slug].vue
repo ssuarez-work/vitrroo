@@ -277,14 +277,35 @@ watch(
 
 onBeforeUnmount(resetRoot)
 
+const runtimeConfig = useRuntimeConfig()
+const baseUrl = runtimeConfig.public.appUrl.replace(/\/$/, '')
+
 const absoluteImageUrl = (raw: string | null | undefined): string | undefined => {
   if (!raw) return undefined
   if (raw.startsWith('http://') || raw.startsWith('https://')) return raw
-  return `${baseUrl.replace(/\/$/, '')}${raw.startsWith('/') ? raw : `/${raw}`}`
+  return `${baseUrl}${raw.startsWith('/') ? raw : `/${raw}`}`
 }
 
-const seoTitle = computed(() => data.value ? `${data.value.store.name} | Vitrroo` : 'Tienda no encontrada | Vitrroo')
-const seoDescription = computed(() => data.value?.store.description ?? 'Catálogo digital para pedidos por WhatsApp.')
+const productHasStock = (product: Product): boolean => {
+  const variants = product.product_variants ?? []
+  if (variants.length === 0) return true
+  return variants.some((variant) => variant.stock_quantity === null || variant.stock_quantity > 0)
+}
+
+const storeUrl = computed(() => data.value ? `${baseUrl}/${data.value.store.slug}` : baseUrl)
+
+const seoTitle = computed(() => {
+  if (!data.value) return 'Tienda no encontrada · Vitrroo'
+  return `${data.value.store.name} · Catálogo en Vitrroo`
+})
+
+const seoDescription = computed(() => {
+  if (!data.value) return 'Esta tienda no está disponible en Vitrroo.'
+  const store = data.value.store
+  if (store.description) return store.description
+  return `Catálogo digital de ${store.name}. Pide directo por WhatsApp con un mensaje listo para enviar.`
+})
+
 const seoImage = computed(() => absoluteImageUrl(data.value?.store.logo_url))
 
 const fontHref = computed(() => fontsUrl(theme.value))
@@ -292,7 +313,8 @@ const fontHref = computed(() => fontsUrl(theme.value))
 useHead({
   link: [
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    { rel: 'stylesheet', href: fontHref }
+    { rel: 'stylesheet', href: fontHref },
+    { rel: 'canonical', href: storeUrl.value }
   ]
 })
 
@@ -302,6 +324,7 @@ useSeoMeta({
   ogTitle: seoTitle,
   ogDescription: seoDescription,
   ogImage: seoImage,
+  ogUrl: storeUrl,
   ogType: 'website',
   twitterCard: 'summary_large_image',
   twitterTitle: seoTitle,
@@ -309,36 +332,64 @@ useSeoMeta({
   twitterImage: seoImage
 })
 
-const runtimeConfig = useRuntimeConfig()
-const baseUrl = runtimeConfig.public.appUrl
+const buildProductOffer = (product: Product, index: number, storeSlug: string) => {
+  const image = absoluteImageUrl(product.product_images?.[0]?.url ?? product.image_url)
+  const availability = productHasStock(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+  return {
+    '@type': 'Offer',
+    position: index + 1,
+    url: `${baseUrl}/${storeSlug}?p=${product.id}`,
+    priceCurrency: 'MXN',
+    price: (product.price / 100).toFixed(2),
+    availability,
+    itemOffered: {
+      '@type': 'Product',
+      '@id': `${baseUrl}/${storeSlug}#product-${product.id}`,
+      name: product.name,
+      sku: product.id,
+      image: image ? [image] : undefined,
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'MXN',
+        price: (product.price / 100).toFixed(2),
+        availability
+      }
+    }
+  }
+}
 
-const jsonLd = computed(() => {
+const structuredData = computed(() => {
   if (!data.value) return null
   const store = data.value.store
   const products = data.value.products
+  const logo = absoluteImageUrl(store.logo_url)
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'Store',
-    name: store.name,
-    description: store.description ?? undefined,
-    url: `${baseUrl}/${store.slug}`,
-    image: store.logo_url ?? undefined,
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name: `Productos de ${store.name}`,
-      itemListElement: products.slice(0, 50).map((product, index) => ({
-        '@type': 'Offer',
-        position: index + 1,
-        priceCurrency: 'MXN',
-        price: (product.price / 100).toFixed(2),
-        itemOffered: {
-          '@type': 'Product',
-          name: product.name,
-          image: product.product_images?.[0]?.url ?? product.image_url ?? undefined
+    '@graph': [
+      {
+        '@type': 'Store',
+        '@id': `${storeUrl.value}#store`,
+        name: store.name,
+        description: store.description ?? undefined,
+        url: storeUrl.value,
+        image: logo,
+        telephone: store.whatsapp_number ?? undefined,
+        currenciesAccepted: 'MXN',
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: `Productos de ${store.name}`,
+          itemListElement: products.slice(0, 50).map((product, index) => buildProductOffer(product, index, store.slug))
         }
-      }))
-    }
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Vitrroo', item: baseUrl },
+          { '@type': 'ListItem', position: 2, name: store.name, item: storeUrl.value }
+        ]
+      }
+    ]
   }
 })
 
@@ -346,7 +397,7 @@ useHead({
   script: [
     {
       type: 'application/ld+json',
-      innerHTML: () => (jsonLd.value ? JSON.stringify(jsonLd.value) : '')
+      innerHTML: () => (structuredData.value ? JSON.stringify(structuredData.value) : '')
     }
   ]
 })

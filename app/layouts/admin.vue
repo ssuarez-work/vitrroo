@@ -81,6 +81,8 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient()
 
+useNoIndex()
+
 const handleLogout = async () => {
   if (typeof window === 'undefined') return
   const confirmed = window.confirm('¿Cerrar sesión?')

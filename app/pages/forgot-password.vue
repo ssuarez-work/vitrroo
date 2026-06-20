@@ -86,6 +86,7 @@ const sendReset = async () => {
   hasSent.value = true
 }
 
-useHead({ title: 'Recuperar contraseña | Vitrroo' })
+useNoIndex()
+useHead({ title: 'Recuperar contraseña · Vitrroo' })
 </script>
 

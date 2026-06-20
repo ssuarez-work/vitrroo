@@ -96,14 +96,23 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Vitrroo — Catálogos para WhatsApp',
+      htmlAttrs: {
+        lang: 'es-MX'
+      },
+      titleTemplate: '%s',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        {
-          name: 'description',
-          content: 'Crea tu catálogo digital y vende más rápido por WhatsApp.',
-        },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { name: 'format-detection', content: 'telephone=no' },
+        { name: 'theme-color', content: '#22c55e', media: '(prefers-color-scheme: light)' },
+        { name: 'theme-color', content: '#0f0f10', media: '(prefers-color-scheme: dark)' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'apple-mobile-web-app-title', content: 'Vitrroo' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1' },
+        { property: 'og:site_name', content: 'Vitrroo' },
+        { property: 'og:locale', content: 'es_MX' }
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

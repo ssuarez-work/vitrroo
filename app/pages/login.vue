@@ -195,5 +195,6 @@ const cancelMfa = async () => {
   errorMessage.value = ''
 }
 
-useHead({ title: 'Iniciar Sesión | Vitrroo' })
+useNoIndex()
+useHead({ title: 'Iniciar Sesión · Vitrroo' })
 </script>

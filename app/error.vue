@@ -81,5 +81,6 @@ const reload = () => {
   if (typeof window !== 'undefined') window.location.reload()
 }
 
-useHead({ title: `Error ${statusCode.value} | Vitrroo` })
+useNoIndex()
+useHead({ title: `Error ${statusCode.value} · Vitrroo` })
 </script>

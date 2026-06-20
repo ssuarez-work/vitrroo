@@ -14,6 +14,7 @@
             <a href="#caracteristicas" class="hover:text-gray-900 transition-colors">Características</a>
             <a href="#como-funciona" class="hover:text-gray-900 transition-colors">Cómo funciona</a>
             <a href="#precios" class="hover:text-gray-900 transition-colors">Precios</a>
+            <a href="#preguntas" class="hover:text-gray-900 transition-colors">Preguntas</a>
           </div>
 
           <div class="flex items-center gap-2 md:gap-4">
@@ -234,6 +235,31 @@
       </div>
     </section>
 
+    <section id="preguntas" class="py-16 md:py-24 px-5 md:px-6 bg-[#f8f8fa] border-t border-[#f0f0f2]">
+      <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-10 md:mb-14">
+          <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900 mb-3 md:mb-4">Preguntas frecuentes</h2>
+          <p class="text-base md:text-lg text-gray-500">Lo que más nos preguntan antes de empezar.</p>
+        </div>
+        <div class="space-y-3 md:space-y-4">
+          <details
+            v-for="(item, index) in faqItems"
+            :key="item.question"
+            class="group bg-white rounded-2xl md:rounded-3xl border border-[#f0f0f2] shadow-sm overflow-hidden"
+            :open="index === 0"
+          >
+            <summary class="flex items-center justify-between gap-3 cursor-pointer p-5 md:p-6 list-none">
+              <h3 class="text-base md:text-lg font-bold text-gray-900 leading-snug">{{ item.question }}</h3>
+              <Icon name="lucide:chevron-down" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform group-open:rotate-180" />
+            </summary>
+            <div class="px-5 pb-5 md:px-6 md:pb-6 text-gray-600 leading-relaxed">
+              {{ item.answer }}
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
     <section class="py-16 md:py-24 px-5 md:px-6 bg-white border-t border-[#f0f0f2]">
       <div class="max-w-4xl mx-auto text-center">
         <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900 mb-4 md:mb-6">Tu catálogo, listo en 5 minutos</h2>
@@ -284,20 +310,142 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 definePageMeta({ layout: false })
 
 const isMobileMenuOpen = ref(false)
 const currentYear = new Date().getFullYear()
 
+const siteUrl = useSiteUrl()
+const ogImageUrl = `${siteUrl}/og-image.svg`
+
+useCanonical()
+
 useSeoMeta({
-  title: 'Vitrroo — Catálogo digital para vender por WhatsApp',
-  description: 'Sube tus productos, comparte tu enlace y recibe pedidos directo en WhatsApp con un mensaje listo para enviar. Sin tienda online, sin comisiones.',
-  ogTitle: 'Vitrroo — Tu catálogo digital para vender por WhatsApp',
-  ogDescription: 'Sube tus productos en minutos. Tus clientes piden por WhatsApp con un mensaje precargado. Empieza gratis.',
+  title: 'Vitrroo · Catálogo digital para vender por WhatsApp en México',
+  description: 'Crea tu catálogo móvil en 5 minutos, comparte tu enlace y recibe pedidos directos en WhatsApp. Sin comisiones, sin sitio web, gratis para empezar.',
+  ogTitle: 'Vitrroo · Catálogo digital para vender por WhatsApp',
+  ogDescription: 'Sube tus productos, comparte tu enlace y vende por WhatsApp con un mensaje precargado. Pro desde $99 MXN/mes. Sin comisiones.',
   ogType: 'website',
-  twitterCard: 'summary_large_image'
+  ogUrl: siteUrl,
+  ogImage: ogImageUrl,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Vitrroo · Catálogo digital para vender por WhatsApp',
+  twitterDescription: 'Tu catálogo móvil listo en 5 minutos. Pedidos directos por WhatsApp. Pro desde $99 MXN/mes.',
+  twitterImage: ogImageUrl
+})
+
+const faqItems = [
+  {
+    question: '¿Cuánto cuesta usar Vitrroo?',
+    answer: 'El plan Free es gratis para siempre con hasta 15 productos. El plan Pro cuesta $99 MXN al mes o $890 MXN al año (ahorra 25%) e incluye productos ilimitados, categorías, variantes con stock y estadísticas avanzadas.'
+  },
+  {
+    question: '¿Cómo cobro a mis clientes?',
+    answer: 'Los pedidos llegan directo a tu WhatsApp con un mensaje precargado. Tú cobras como ya lo haces: efectivo, transferencia o terminal Clip. Vitrroo no cobra comisión por venta.'
+  },
+  {
+    question: '¿Necesito tener página web o conocimientos técnicos?',
+    answer: 'No. En 5 minutos creas tu catálogo, agregas productos con fotos y compartes tu enlace personalizado vitrroo.com/tu-marca en Instagram, TikTok o tu estado de WhatsApp.'
+  },
+  {
+    question: '¿Funciona en celular?',
+    answer: 'Sí, está diseñado mobile-first. Tu catálogo se ve como una mini-app en el teléfono de tu cliente y tú lo administras también desde tu celular.'
+  },
+  {
+    question: '¿Puedo cancelar mi suscripción cuando quiera?',
+    answer: 'Sí, sin penalización. Cancelas desde el panel y mantienes Pro hasta el final del periodo pagado. Tus datos se conservan en caso de que quieras reactivar.'
+  },
+  {
+    question: '¿Para qué tipo de negocios sirve Vitrroo?',
+    answer: 'Para cualquier negocio pequeño que vende por WhatsApp: ropa, comida casera, repostería, accesorios, joyería, productos artesanales, plantas, libros y más.'
+  }
+]
+
+const structuredData = computed(() => ({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${siteUrl}/#organization`,
+      name: 'Vitrroo',
+      url: siteUrl,
+      logo: `${siteUrl}/apple-touch-icon.svg`,
+      sameAs: [] as string[],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'hola@vitrroo.com',
+        contactType: 'customer support',
+        availableLanguage: ['Spanish']
+      }
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      url: siteUrl,
+      name: 'Vitrroo',
+      description: 'Catálogo digital para vender por WhatsApp en México.',
+      publisher: { '@id': `${siteUrl}/#organization` },
+      inLanguage: 'es-MX'
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Vitrroo',
+      operatingSystem: 'Web, iOS, Android',
+      applicationCategory: 'BusinessApplication',
+      description: 'SaaS de catálogos digitales mobile-first con pedidos por WhatsApp.',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Plan Free',
+          price: '0',
+          priceCurrency: 'MXN'
+        },
+        {
+          '@type': 'Offer',
+          name: 'Plan Pro Mensual',
+          price: '99',
+          priceCurrency: 'MXN',
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: '99',
+            priceCurrency: 'MXN',
+            referenceQuantity: { '@type': 'QuantitativeValue', value: '1', unitCode: 'MON' }
+          }
+        },
+        {
+          '@type': 'Offer',
+          name: 'Plan Pro Anual',
+          price: '890',
+          priceCurrency: 'MXN'
+        }
+      ],
+      aggregateRating: undefined
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    }
+  ]
+}))
+
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: () => JSON.stringify(structuredData.value)
+    }
+  ]
 })
 </script>
 

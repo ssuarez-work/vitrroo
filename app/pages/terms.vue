@@ -74,8 +74,11 @@ definePageMeta({ layout: false })
 
 const lastUpdated = '21 de mayo de 2026'
 
+useCanonical()
 useSeoMeta({
-  title: 'Términos y Condiciones | Vitrroo',
-  description: 'Términos y condiciones del servicio Vitrroo.'
+  title: 'Términos y Condiciones · Vitrroo',
+  description: 'Condiciones de uso del servicio Vitrroo: planes, pagos, contenido publicado, cancelaciones y responsabilidades.',
+  ogTitle: 'Términos y Condiciones · Vitrroo',
+  ogDescription: 'Condiciones de uso del servicio Vitrroo.'
 })
 </script>

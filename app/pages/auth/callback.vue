@@ -30,5 +30,6 @@ onMounted(async () => {
   navigateTo('/login?confirmed=1', { replace: true })
 })
 
-useHead({ title: 'Confirmando | Vitrroo' })
+useNoIndex()
+useHead({ title: 'Confirmando · Vitrroo' })
 </script>
