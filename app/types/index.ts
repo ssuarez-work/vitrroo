@@ -15,6 +15,7 @@ export interface Store {
   stripe_subscription_id: string | null
   theme_color: string | null
   theme_id: string | null
+  referral_code: string | null
   is_published: boolean
   created_at: string
 }
@@ -101,3 +102,11 @@ export interface ProductSelection {
   option: string | null
 }
 
+export interface Referral {
+  id: string
+  referrer_store_id: string
+  referred_store_id: string
+  code: string
+  rewarded_at: string | null
+  created_at: string
+}
