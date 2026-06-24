@@ -19,6 +19,7 @@ type StoreRow = {
   theme_id: string | null
   referral_code: string | null
   is_published: boolean
+  social_links: Json
   welcome_email_sent_at: Timestamp | null
   trial_warning_sent_at: Timestamp | null
   trial_expired_email_sent_at: Timestamp | null
@@ -42,6 +43,7 @@ type StoreInsert = {
   theme_id?: string | null
   referral_code?: string | null
   is_published?: boolean
+  social_links?: Json
   welcome_email_sent_at?: Timestamp | null
   trial_warning_sent_at?: Timestamp | null
   trial_expired_email_sent_at?: Timestamp | null

@@ -17,6 +17,7 @@ export interface Store {
   theme_id: string | null
   referral_code: string | null
   is_published: boolean
+  social_links: SocialLink[]
   created_at: string
 }
 
@@ -100,6 +101,14 @@ export interface ToastMessage {
 export interface ProductSelection {
   variantId: string | null
   option: string | null
+}
+
+export type SocialNetwork = 'instagram' | 'tiktok' | 'facebook' | 'twitter' | 'website'
+
+export interface SocialLink {
+  type: SocialNetwork
+  value: string
+  label?: string
 }
 
 export interface Referral {

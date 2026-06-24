@@ -26,6 +26,13 @@
   <div v-else :class="['pb-10', densityClass, bodyFontClass]" :style="bodyStyle">
     <StorefrontHeader :store="data.store" :variant="theme.headerVariant" />
 
+    <StorefrontSocialsBar
+      :links="socialLinks"
+      :store-name="data.store.name"
+      :align="socialsAlignment"
+      :is-dark="isDarkTheme"
+    />
+
     <nav v-if="categoryFilters.length > 1" class="px-5 md:px-8 lg:px-10 mb-5 md:mb-7">
       <div class="flex gap-2 md:gap-2.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
         <button
@@ -103,7 +110,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import type { Product, ProductVariant } from '~/types'
+import type { Product, ProductVariant, SocialLink } from '~/types'
 
 interface ProductGroup {
   id: string
@@ -142,6 +149,25 @@ const activeCategoryId = ref<string>(ALL_CATEGORIES)
 const theme = computed(() => resolveTheme(data.value?.store ?? null))
 const isPro = computed(() => isStorePro(data.value?.store ?? null))
 const isDarkTheme = computed(() => theme.value.isDark)
+
+const { buildAbsoluteUrl: buildSocialUrl, exists: socialNetworkExists } = useSocialNetworks()
+
+const socialLinks = computed<SocialLink[]>(() => {
+  const raw = data.value?.store.social_links
+  if (!Array.isArray(raw)) return []
+  return raw.filter((link): link is SocialLink => {
+    return typeof link?.type === 'string'
+      && socialNetworkExists(link.type)
+      && typeof link?.value === 'string'
+      && link.value.trim().length > 0
+  })
+})
+
+const socialsAlignment = computed<'center' | 'start'>(() => {
+  return theme.value.headerVariant === 'left-compact' || theme.value.headerVariant === 'editorial'
+    ? 'start'
+    : 'center'
+})
 
 const gridClasses = computed(() => {
   switch (theme.value.layout) {
@@ -376,6 +402,7 @@ const structuredData = computed(() => {
         image: logo,
         telephone: store.whatsapp_number ?? undefined,
         currenciesAccepted: 'MXN',
+        sameAs: socialLinks.value.length > 0 ? socialLinks.value.map(buildSocialUrl) : undefined,
         hasOfferCatalog: {
           '@type': 'OfferCatalog',
           name: `Productos de ${store.name}`,

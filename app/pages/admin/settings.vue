@@ -168,6 +168,14 @@
           <p v-else class="text-xs text-gray-500 mt-1.5">Incluye el código de país (ej. +52). Solo dígitos y un signo + al inicio.</p>
         </div>
 
+        <hr class="border-[#f0f0f2]" />
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Redes sociales</label>
+          <p class="text-xs text-gray-500 mb-3">Aparecerán como íconos en tu catálogo para que tus clientes te sigan en otras plataformas. Pega el enlace o tu usuario.</p>
+          <SocialLinksEditor v-model="form.social_links" />
+        </div>
+
         <div class="pt-4 border-t border-[#f0f0f2] sticky bottom-0 -mx-5 md:-mx-8 px-5 md:px-8 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-4 bg-white">
           <button
             type="submit"
@@ -185,7 +193,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { Store } from '~/types'
+import type { SocialLink, Store } from '~/types'
 
 definePageMeta({ layout: 'admin', middleware: 'auth' })
 
@@ -203,6 +211,7 @@ interface SettingsForm {
   theme_color: string | null
   theme_id: string | null
   is_published: boolean
+  social_links: SocialLink[]
 }
 
 const store = ref<Store | null>(null)
@@ -217,7 +226,8 @@ const form = ref<SettingsForm>({
   logo_url: null,
   theme_color: null,
   theme_id: null,
-  is_published: true
+  is_published: true,
+  social_links: []
 })
 
 const { limits } = usePlanLimits(store)
@@ -305,7 +315,8 @@ onMounted(async () => {
       logo_url: data.logo_url,
       theme_color: data.theme_color,
       theme_id: data.theme_id,
-      is_published: data.is_published
+      is_published: data.is_published,
+      social_links: Array.isArray(data.social_links) ? data.social_links : []
     }
     initialSlug.value = data.slug ?? ''
     excludeStoreId.value = data.id
@@ -328,6 +339,10 @@ const saveSettings = async () => {
 
   const themeId = limits.value.canCustomizeTheme ? (form.value.theme_id || null) : null
 
+  const cleanSocialLinks = form.value.social_links
+    .filter((link) => link.value.trim().length > 0)
+    .map((link) => ({ type: link.type, value: link.value.trim() }))
+
   isSaving.value = true
 
   const { error } = await supabase
@@ -340,7 +355,8 @@ const saveSettings = async () => {
       logo_url: form.value.logo_url,
       theme_color: themeColor,
       theme_id: themeId,
-      is_published: form.value.is_published
+      is_published: form.value.is_published,
+      social_links: cleanSocialLinks
     })
     .eq('id', store.value.id)
 
