@@ -23,11 +23,7 @@ interface AuditOptions {
   metadata?: Record<string, Json>
 }
 
-const clientIp = (event: H3Event): string | null => {
-  const forwarded = getHeader(event, 'x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0]!.trim()
-  return getHeader(event, 'x-real-ip') ?? null
-}
+const logger = createLogger('audit')
 
 export const recordAudit = async (
   event: H3Event,
@@ -43,11 +39,12 @@ export const recordAudit = async (
       target_type: options.targetType ?? null,
       target_id: options.targetId ?? null,
       metadata: options.metadata ?? {},
-      ip_address: clientIp(event),
+      ip_address: resolveClientIp(event),
       user_agent: getHeader(event, 'user-agent') ?? null
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'unknown'
-    console.error(`[audit] failed to record ${action}: ${message}`)
+    logger.error(`failed to record ${action}`, {
+      error: error instanceof Error ? error.message : String(error)
+    })
   }
 }

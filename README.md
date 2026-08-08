@@ -25,14 +25,14 @@ app/
 server/
 ├── api/                Endpoints Nitro (billing, cron, user, health)
 └── utils/              Helpers (stripe, rateLimit, cronAuth, logger, email, audit, monitor, storeAdmin, phone)
-supabase/migrations/    Esquema inicial + 6 migraciones evolutivas
+supabase/migrations/    Esquema inicial + migraciones evolutivas (00001 → 00011)
 public/                 favicon.svg, apple-touch-icon.svg, manifest.json, robots.txt
 ```
 
 ## Setup local
 
 1. Copia `.env.example` a `.env` y llena las variables.
-2. Aplica las migraciones SQL de `supabase/migrations/` en orden (00001 → 00007).
+2. Aplica las migraciones SQL de `supabase/migrations/` en orden (00001 → 00011).
 3. En Supabase Auth → Redirect URLs, agrega `http://localhost:3000/reset-password` y `http://localhost:3000/auth/callback`.
 4. Instala y arranca:
 
@@ -55,9 +55,10 @@ stripe listen --forward-to localhost:3000/api/billing/webhook
 - `product_images`: galería de hasta 5 imágenes por producto (Pro).
 - `categories`: por tienda con sort_order.
 - `store_events`: visitas y clics WhatsApp (analytics).
-- `email_queue`: cola con retry exponencial.
+- `email_queue`: cola con retry exponencial y claim atómico (`claim_email_jobs`, estado `processing`).
 - `referrals`: programa de referidos (oculto del UI, infra preservada).
 - `audit_logs`: trazabilidad de acciones críticas.
+- `stripe_events`: idempotencia del webhook de Stripe (un evento se procesa una sola vez).
 
 ## Producción — configuración externa
 
@@ -88,7 +89,7 @@ Ver `.env.example`. En producción:
 
 ### Supabase
 
-1. Aplica las 7 migraciones SQL en orden.
+1. Aplica las 11 migraciones SQL en orden (00001 → 00011).
 2. Auth → URL Configuration → Redirect URLs:
    - `https://tu-dominio.com/reset-password`
    - `https://tu-dominio.com/auth/callback`
@@ -97,13 +98,14 @@ Ver `.env.example`. En producción:
 
 ### Cron jobs
 
-Configura 3 endpoints con `Authorization: Bearer $NUXT_CRON_SECRET`:
+Configura 4 endpoints con `Authorization: Bearer $NUXT_CRON_SECRET`:
 
 | Endpoint | Frecuencia |
 |---|---|
 | `POST /api/cron/process-email-queue` | cada 10 minutos |
 | `POST /api/cron/weekly-summary` | lunes 9:00 AM |
 | `POST /api/cron/trial-warnings` | diario 8:00 AM |
+| `POST /api/cron/purge-old-data` | diario (retención de datos) |
 
 Opciones recomendadas: Vercel Cron, GitHub Actions, supabase pg_cron, o un job manager (Inngest, Trigger.dev).
 

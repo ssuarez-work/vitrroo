@@ -24,12 +24,17 @@ const proUntilFromSubscription = (subscription: Stripe.Subscription): string | n
   return new Date(periodEnd * 1000).toISOString()
 }
 
-const handleSubscriptionUpsert = async (event: any, subscription: Stripe.Subscription) => {
+const ACTIVE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due']
+
+const handleSubscriptionUpsert = async (event: H3Event, subscriptionId: string) => {
+  const stripe = useStripe()
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+
   const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
   const store = await findStoreByCustomerId(event, customerId)
   if (!store) return
 
-  const isActive = ['active', 'trialing', 'past_due'].includes(subscription.status)
+  const isActive = ACTIVE_SUBSCRIPTION_STATUSES.includes(subscription.status)
   await updateStoreById(event, store.id, {
     plan: isActive ? 'pro' : 'free',
     pro_until: isActive ? proUntilFromSubscription(subscription) : null,
@@ -45,7 +50,7 @@ const handleSubscriptionUpsert = async (event: any, subscription: Stripe.Subscri
   })
 }
 
-const handleSubscriptionDeleted = async (event: any, subscription: Stripe.Subscription) => {
+const handleSubscriptionDeleted = async (event: H3Event, subscription: Stripe.Subscription) => {
   const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
   const store = await findStoreByCustomerId(event, customerId)
   if (!store) return
@@ -97,19 +102,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: message })
   }
 
+  const isFirstDelivery = await claimStripeEvent(event, stripeEvent.id, stripeEvent.type)
+  if (!isFirstDelivery) {
+    return { received: true, duplicate: true }
+  }
+
   try {
     switch (stripeEvent.type) {
       case 'checkout.session.completed': {
         const session = stripeEvent.data.object as Stripe.Checkout.Session
         if (session.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-          await handleSubscriptionUpsert(event, subscription)
+          await handleSubscriptionUpsert(event, session.subscription as string)
         }
         break
       }
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        await handleSubscriptionUpsert(event, stripeEvent.data.object as Stripe.Subscription)
+        await handleSubscriptionUpsert(event, (stripeEvent.data.object as Stripe.Subscription).id)
         break
       }
       case 'customer.subscription.deleted': {

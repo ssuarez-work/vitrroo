@@ -7,7 +7,11 @@
     >
       <div class="absolute inset-0 bg-gray-900/70 md:backdrop-blur-sm" @click="cancel"></div>
 
-      <div class="relative z-10 w-full md:max-w-md bg-white md:rounded-3xl rounded-t-[1.75rem] shadow-modal overflow-hidden max-h-[95dvh] md:max-h-[90vh] flex flex-col">
+      <div
+        ref="dialogRef"
+        tabindex="-1"
+        class="relative z-10 w-full md:max-w-md bg-white md:rounded-3xl rounded-t-[1.75rem] shadow-modal overflow-hidden max-h-[95dvh] md:max-h-[90vh] flex flex-col outline-none"
+      >
         <button
           class="md:hidden w-full flex justify-center pt-3 pb-1"
           aria-label="Cerrar"
@@ -115,6 +119,7 @@ const MIN_VIEWPORT_PX = 240
 const MAX_VIEWPORT_PX = 320
 
 const viewportRef = ref<HTMLDivElement | null>(null)
+const dialogRef = ref<HTMLElement | null>(null)
 const imageUrl = ref<string | null>(null)
 const imageLoaded = ref(false)
 const isProcessing = ref(false)
@@ -245,6 +250,22 @@ const onWheel = (event: WheelEvent) => {
 
 const cancel = () => emit('cancel')
 
+useModalDismiss(() => true, cancel, dialogRef)
+
+const loadSourceImage = async (): Promise<HTMLImageElement | null> => {
+  const source = imageUrl.value
+  if (!source) return null
+
+  const image = new Image()
+  image.src = source
+  if (image.complete) return image
+
+  return new Promise<HTMLImageElement | null>((resolve) => {
+    image.onload = () => resolve(image)
+    image.onerror = () => resolve(null)
+  })
+}
+
 const buildOutputFile = async (): Promise<File | null> => {
   if (!imageLoaded.value) return null
 
@@ -254,13 +275,8 @@ const buildOutputFile = async (): Promise<File | null> => {
   const sourceX = sourceCenterX - sourceSize / 2
   const sourceY = sourceCenterY - sourceSize / 2
 
-  const image = new Image()
-  image.src = imageUrl.value as string
-  if (!image.complete) {
-    await new Promise<void>((resolve) => {
-      image.onload = () => resolve()
-    })
-  }
+  const image = await loadSourceImage()
+  if (!image) return null
 
   const canvas = document.createElement('canvas')
   canvas.width = props.outputSize

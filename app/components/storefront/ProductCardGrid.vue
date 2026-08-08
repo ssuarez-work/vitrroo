@@ -39,10 +39,7 @@ defineEmits<{ click: [] }>()
 
 const { fromCents } = usePrice()
 
-const coverImage = computed(() => {
-  const images = [...(props.product.product_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
-  return images[0]?.url ?? props.product.image_url ?? null
-})
+const coverImage = computed(() => coverImageOf(props.product))
 
 const containerClass = computed(() => {
   const base = 'overflow-hidden'

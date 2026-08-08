@@ -384,6 +384,7 @@ const { getMyStore, getMyProducts, reorderProducts } = useSupabaseStore()
 const { listByStore: listCategories } = useCategories()
 const { replaceAll: replaceVariants } = useProductVariants()
 const { replaceAll: replaceImages } = useProductImages()
+const { removeByUrls } = useImageUpload()
 const { fromCents, toCents } = usePrice()
 const toast = useToast()
 
@@ -521,11 +522,6 @@ const onNewProductClick = () => {
   openModal()
 }
 
-const coverImageOf = (product: Product): string | null => {
-  const sorted = [...(product.product_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
-  return sorted[0]?.url ?? product.image_url ?? null
-}
-
 const categoryNameOf = (id: string | null): string | null => {
   if (!id) return null
   return categories.value.find((c) => c.id === id)?.name ?? null
@@ -567,7 +563,7 @@ const openModal = (product: Product | null = null) => {
 }
 
 const toFormState = (product: Product): ProductForm => {
-  const sortedImages = [...(product.product_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+  const sortedImages = sortedProductImages(product)
   const initialImages: GalleryImage[] = sortedImages.length > 0
     ? sortedImages.map((image) => ({ url: image.url }))
     : product.image_url
@@ -761,6 +757,8 @@ const confirmDelete = async (product: Product) => {
     toast.error('No pudimos eliminar el producto.')
     return
   }
+
+  void removeByUrls((product.product_images ?? []).map((image) => image.url))
 
   products.value = products.value.filter((p) => p.id !== product.id)
   if (isModalOpen.value) closeModal()

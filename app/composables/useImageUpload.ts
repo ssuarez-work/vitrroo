@@ -1,6 +1,7 @@
 const BUCKET = 'vitrroo-assets'
 const MAX_FILE_BYTES = 4 * 1024 * 1024
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const PUBLIC_URL_PREFIX = `/storage/v1/object/public/${BUCKET}/`
 
 interface UploadResult {
   url: string | null
@@ -42,5 +43,19 @@ export const useImageUpload = () => {
     return { url: data.publicUrl, error: null }
   }
 
-  return { upload }
+  const toStoragePath = (url: string): string | null => {
+    const index = url.indexOf(PUBLIC_URL_PREFIX)
+    if (index === -1) return null
+    return decodeURIComponent(url.slice(index + PUBLIC_URL_PREFIX.length))
+  }
+
+  const removeByUrls = async (urls: string[]): Promise<void> => {
+    const paths = urls.map(toStoragePath).filter((path): path is string => Boolean(path))
+    if (paths.length === 0) return
+
+    const { error } = await supabase.storage.from(BUCKET).remove(paths)
+    if (error) console.error('Error eliminando imágenes de storage:', error)
+  }
+
+  return { upload, removeByUrls }
 }

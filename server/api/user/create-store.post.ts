@@ -50,6 +50,11 @@ export default defineEventHandler(async (event) => {
 
   const { name, slugBase } = deriveDefaults(user.email ?? null)
 
+  const alreadyHasStore = async (): Promise<boolean> => {
+    const { data } = await admin.from('stores').select('id').eq('user_id', user.id).maybeSingle()
+    return Boolean(data)
+  }
+
   for (let attempt = 0; attempt < SLUG_MAX_RETRIES; attempt++) {
     const slug = buildCandidateSlug(slugBase)
     const { data, error } = await admin
@@ -59,8 +64,12 @@ export default defineEventHandler(async (event) => {
       .single()
 
     if (!error && data) return { id: data.id, slug: data.slug }
-    if (error && error.code !== UNIQUE_VIOLATION_CODE) {
+    if (!error) break
+    if (error.code !== UNIQUE_VIOLATION_CODE) {
       throw createError({ statusCode: 500, statusMessage: error.message })
+    }
+    if (await alreadyHasStore()) {
+      throw createError({ statusCode: 409, statusMessage: 'Ya tienes una tienda asociada.' })
     }
   }
 

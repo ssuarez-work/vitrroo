@@ -1,4 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
+import type { Database } from '~/types/database.types'
 
 interface QueueRow {
   id: number
@@ -79,16 +80,9 @@ const nextRetryAt = (retryCount: number): string => {
 export default defineEventHandler(async (event) => {
   requireCronAuth(event)
 
-  const admin = serverSupabaseServiceRole(event)
-  const nowIso = new Date().toISOString()
+  const admin = serverSupabaseServiceRole<Database>(event)
 
-  const { data: queue, error } = await admin
-    .from('email_queue')
-    .select('id, store_id, kind, payload, retry_count')
-    .eq('status', 'pending')
-    .or(`next_retry_at.is.null,next_retry_at.lte.${nowIso}`)
-    .order('created_at', { ascending: true })
-    .limit(BATCH_SIZE)
+  const { data: queue, error } = await admin.rpc('claim_email_jobs', { p_limit: BATCH_SIZE })
 
   if (error) throw createError({ statusCode: 500, statusMessage: error.message })
 
@@ -96,7 +90,7 @@ export default defineEventHandler(async (event) => {
   let failed = 0
   let retried = 0
 
-  for (const job of (queue ?? []) as QueueRow[]) {
+  for (const job of (queue ?? []) as unknown as QueueRow[]) {
     const { data: store } = await admin
       .from('stores')
       .select('id, name, slug, user_id')
@@ -152,6 +146,7 @@ export default defineEventHandler(async (event) => {
       await admin
         .from('email_queue')
         .update({
+          status: 'pending',
           retry_count: nextRetry,
           next_retry_at: nextRetryAt(nextRetry),
           error_message: result.error

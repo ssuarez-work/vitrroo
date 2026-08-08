@@ -1,13 +1,21 @@
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="modelValue" class="fixed inset-0 z-[100] flex flex-col justify-end">
+      <div
+        v-if="modelValue"
+        class="fixed inset-0 z-[100] flex flex-col justify-end"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="product?.name ?? 'Producto'"
+      >
         <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity" @click="close"></div>
 
         <Transition name="slide-up">
           <div
             v-if="modelValue"
-            class="relative w-full max-w-md md:max-w-lg lg:max-w-2xl mx-auto shadow-modal flex flex-col max-h-[90vh] md:max-h-[88vh] lg:max-h-[85vh] overflow-hidden"
+            ref="dialogRef"
+            tabindex="-1"
+            class="relative w-full max-w-md md:max-w-lg lg:max-w-2xl mx-auto shadow-modal flex flex-col max-h-[90vh] md:max-h-[88vh] lg:max-h-[85vh] overflow-hidden outline-none"
             :style="sheetStyle"
           >
             <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" @click="close">
@@ -121,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Product, ProductVariant, Store } from '~/types'
 
 const WA_GREEN = '#25D366'
@@ -142,6 +150,7 @@ const { fromCents } = usePrice()
 const { buildWhatsAppUrl } = useStorefront()
 const { resolveTheme } = useStoreTheme()
 
+const dialogRef = ref<HTMLElement | null>(null)
 const selectedVariantId = ref<string | null>(null)
 const selectedOption = ref<string | null>(null)
 const activeImageIndex = ref(0)
@@ -153,9 +162,7 @@ const legacyOptions = computed<string[]>(() => props.product?.options ?? [])
 
 const galleryImages = computed<string[]>(() => {
   if (!props.product) return []
-  const fromTable = [...(props.product.product_images ?? [])]
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map((image) => image.url)
+  const fromTable = sortedProductImages(props.product).map((image) => image.url)
   if (fromTable.length > 0) return fromTable
   return props.product.image_url ? [props.product.image_url] : []
 })
@@ -304,8 +311,6 @@ const pickFirstAvailableVariant = () => {
 watch(
   () => props.modelValue,
   (isOpen) => {
-    if (typeof document === 'undefined') return
-    document.body.style.overflow = isOpen ? 'hidden' : ''
     if (!isOpen) return
     selectedOption.value = props.product?.options?.[0] ?? null
     pickFirstAvailableVariant()
@@ -315,9 +320,8 @@ watch(
 
 const close = () => emit('update:modelValue', false)
 
-onBeforeUnmount(() => {
-  if (typeof document !== 'undefined') document.body.style.overflow = ''
-})
+useModalDismiss(() => props.modelValue, close, dialogRef)
+useBodyScrollLock(() => props.modelValue)
 
 const previousImage = () => {
   if (galleryImages.value.length === 0) return

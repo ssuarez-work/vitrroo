@@ -12,7 +12,9 @@
         <Transition name="sheet">
           <div
             v-if="modelValue"
-            class="relative bg-white shadow-modal flex flex-col w-full md:max-w-lg md:rounded-3xl rounded-t-[1.75rem] overflow-hidden md:max-h-[90vh] max-h-[92dvh] md:my-0"
+            ref="dialogRef"
+            tabindex="-1"
+            class="relative bg-white shadow-modal flex flex-col w-full md:max-w-lg md:rounded-3xl rounded-t-[1.75rem] overflow-hidden md:max-h-[90vh] max-h-[92dvh] md:my-0 outline-none"
           >
             <button
               class="md:hidden w-full flex justify-center pt-3 pb-2 cursor-pointer touch-manipulation"
@@ -48,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -59,15 +61,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
+const dialogRef = ref<HTMLElement | null>(null)
 const close = () => emit('update:modelValue', false)
 
-watch(
-  () => props.modelValue,
-  (isOpen) => {
-    if (typeof document === 'undefined') return
-    document.body.style.overflow = isOpen ? 'hidden' : ''
-  }
-)
+useModalDismiss(() => props.modelValue, close, dialogRef)
+useBodyScrollLock(() => props.modelValue)
 </script>
 
 <style scoped>

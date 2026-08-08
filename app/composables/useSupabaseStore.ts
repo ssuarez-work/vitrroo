@@ -1,6 +1,5 @@
 import type { Product, Store } from '~/types'
-
-const PRODUCT_SELECT = '*, product_variants(*), product_images(*)'
+import { PRODUCT_SELECT } from '~/utils/product'
 
 export const useSupabaseStore = () => {
   const supabase = useSupabaseClient()

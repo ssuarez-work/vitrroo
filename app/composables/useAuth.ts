@@ -27,14 +27,12 @@ const isUnconfirmedEmail = (message: string): boolean =>
 export const useAuth = () => {
   const supabase = useSupabaseClient()
 
-  const pingRateLimit = async (email: string, password: string): Promise<boolean> => {
+  const isLoginAttemptAllowed = async (email: string): Promise<boolean> => {
     try {
-      await $fetch('/api/auth/login', { method: 'POST', body: { email, password } })
+      await $fetch('/api/auth/login', { method: 'POST', body: { email } })
       return true
     } catch (error) {
-      const status = (error as { statusCode?: number }).statusCode
-      if (status === 429) return false
-      return true
+      return (error as { statusCode?: number }).statusCode !== 429
     }
   }
 
@@ -53,7 +51,7 @@ export const useAuth = () => {
   }
 
   const login = async (email: string, password: string): Promise<LoginOutcome> => {
-    const allowed = await pingRateLimit(email, password)
+    const allowed = await isLoginAttemptAllowed(email)
     if (!allowed) return { status: 'rate-limited' }
 
     const { error } = await supabase.auth.signInWithPassword({ email, password })

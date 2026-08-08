@@ -1,12 +1,11 @@
 import type { Category, Product, ProductSelection, Store } from '~/types'
+import { PRODUCT_SELECT } from '~/utils/product'
 
 interface StorefrontData {
   store: Store
   products: Product[]
   categories: Category[]
 }
-
-const PRODUCT_SELECT = '*, product_variants(*), product_images(*)'
 
 export const useStorefront = () => {
   const supabase = useSupabaseClient()

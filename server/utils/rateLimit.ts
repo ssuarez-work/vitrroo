@@ -14,11 +14,7 @@ interface BucketState {
 const STORAGE_BASE = 'rate-limit'
 
 const clientIdentifier = (event: H3Event): string => {
-  const forwarded = getHeader(event, 'x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0]!.trim()
-  const real = getHeader(event, 'x-real-ip')
-  if (real) return real.trim()
-  return getHeader(event, 'cf-connecting-ip') ?? 'unknown'
+  return resolveClientIp(event) ?? 'unknown'
 }
 
 export const enforceRateLimit = async (

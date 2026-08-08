@@ -16,6 +16,11 @@ export default defineEventHandler(async (event) => {
     admin.rpc('purge_old_email_jobs', { p_days_to_keep: EMAIL_JOB_RETENTION_DAYS })
   ])
 
+  const failure = events.error ?? audits.error ?? emails.error
+  if (failure) {
+    throw createError({ statusCode: 500, statusMessage: failure.message })
+  }
+
   return {
     events_deleted: Number(events.data ?? 0),
     audit_logs_deleted: Number(audits.data ?? 0),

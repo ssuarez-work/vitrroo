@@ -69,3 +69,20 @@ export const runDowngradeCleanup = async (event: H3Event, storeId: string): Prom
     throw createError({ statusCode: 500, statusMessage: error.message })
   }
 }
+
+const UNIQUE_VIOLATION_CODE = '23505'
+
+export const claimStripeEvent = async (
+  event: H3Event,
+  stripeEventId: string,
+  stripeEventType: string
+): Promise<boolean> => {
+  const client = serverSupabaseServiceRole<Database>(event)
+  const { error } = await client
+    .from('stripe_events')
+    .insert({ id: stripeEventId, type: stripeEventType })
+
+  if (!error) return true
+  if (error.code === UNIQUE_VIOLATION_CODE) return false
+  throw createError({ statusCode: 500, statusMessage: error.message })
+}

@@ -92,20 +92,26 @@
     <section class="py-8 md:py-10 border-y border-[#f0f0f2] bg-white">
       <div class="max-w-7xl mx-auto px-5 md:px-6 text-center">
         <p class="text-xs sm:text-sm font-bold text-gray-400 mb-5 md:mb-6 uppercase tracking-wider">Hecho para vendedores de</p>
-        <div class="grid grid-cols-2 md:flex md:flex-wrap md:justify-center gap-4 md:gap-12 opacity-70">
-          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700">
+        <div class="grid grid-cols-2 md:flex md:flex-wrap md:justify-center items-center gap-4 md:gap-12">
+          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700 opacity-70">
             <Icon name="lucide:shirt" class="w-5 h-5 md:w-6 md:h-6" /> Ropa y Moda
           </div>
-          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700">
+          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700 opacity-70">
             <Icon name="lucide:utensils" class="w-5 h-5 md:w-6 md:h-6" /> Comida Local
           </div>
-          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700">
+          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700 opacity-70">
             <Icon name="lucide:watch" class="w-5 h-5 md:w-6 md:h-6" /> Accesorios
           </div>
-          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700">
+          <div class="flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-gray-700 opacity-70">
             <Icon name="lucide:sparkles" class="w-5 h-5 md:w-6 md:h-6" /> Belleza
           </div>
+          <div class="col-span-2 md:col-span-1 flex items-center justify-center gap-2 text-sm sm:text-base md:text-xl font-extrabold text-brand-600">
+            <Icon name="lucide:plus-circle" class="w-5 h-5 md:w-6 md:h-6" /> y muchos más
+          </div>
         </div>
+        <p class="text-xs sm:text-sm md:text-base text-gray-500 mt-6 md:mt-8 max-w-xl mx-auto leading-relaxed">
+          Si lo vendes por WhatsApp, lo vendes con Vitrroo.
+        </p>
       </div>
     </section>
 

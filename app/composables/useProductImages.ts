@@ -6,6 +6,7 @@ export interface ImageInput {
 
 export const useProductImages = () => {
   const supabase = useSupabaseClient()
+  const { removeByUrls } = useImageUpload()
 
   const listByProduct = async (productId: string): Promise<ProductImage[]> => {
     if (!productId) return []
@@ -25,6 +26,10 @@ export const useProductImages = () => {
   }
 
   const replaceAll = async (productId: string, images: ImageInput[]): Promise<boolean> => {
+    const previous = await listByProduct(productId)
+    const keptUrls = new Set(images.map((image) => image.url.trim()))
+    const removedUrls = previous.map((image) => image.url).filter((url) => !keptUrls.has(url))
+
     const { error: deleteError } = await supabase
       .from('product_images')
       .delete()
@@ -35,8 +40,6 @@ export const useProductImages = () => {
       return false
     }
 
-    if (images.length === 0) return true
-
     const rows = images
       .map((image, index) => ({
         product_id: productId,
@@ -45,11 +48,16 @@ export const useProductImages = () => {
       }))
       .filter((row) => row.url.length > 0)
 
-    if (rows.length === 0) return true
+    if (rows.length > 0) {
+      const { error: insertError } = await supabase.from('product_images').insert(rows)
+      if (insertError) {
+        console.error('Error insertando imágenes:', insertError)
+        return false
+      }
+    }
 
-    const { error: insertError } = await supabase.from('product_images').insert(rows)
-    if (insertError) console.error('Error insertando imágenes:', insertError)
-    return !insertError
+    void removeByUrls(removedUrls)
+    return true
   }
 
   return { listByProduct, replaceAll }

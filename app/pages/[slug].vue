@@ -23,7 +23,7 @@
     </NuxtLink>
   </div>
 
-  <div v-else :class="['pb-10', densityClass, bodyFontClass]" :style="bodyStyle">
+  <div v-else :class="['pb-10', densityClass]" :style="bodyStyle">
     <StorefrontHeader :store="data.store" :variant="theme.headerVariant" />
 
     <StorefrontSocialsBar
@@ -109,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import type { Product, ProductVariant, SocialLink } from '~/types'
 
 interface ProductGroup {
@@ -128,7 +128,7 @@ const slug = computed(() => String(route.params.slug ?? ''))
 
 const { loadBySlug } = useStorefront()
 const { track } = useAnalytics()
-const { resolveTheme, applyToRoot, resetRoot, fontsUrl } = useStoreTheme()
+const { resolveTheme, styleString, fontsUrl } = useStoreTheme()
 const currentUser = useSupabaseUser()
 
 const { data, pending } = await useAsyncData(
@@ -193,8 +193,6 @@ const densityClass = computed(() => {
       return 'text-[15px]'
   }
 })
-
-const bodyFontClass = computed(() => 'font-storefront')
 
 const bodyStyle = computed(() => ({
   fontFamily: 'var(--store-body-font)'
@@ -287,21 +285,11 @@ const decrementVariantStock = async (variant: ProductVariant) => {
   await decrementStock(variant.id)
 }
 
+const themeStyle = computed(() => styleString(data.value?.store ?? null))
+
 onMounted(() => {
-  if (data.value) {
-    applyToRoot(data.value.store)
-    if (!isViewingOwnStore.value) void track(data.value.store.id, 'visit')
-  }
+  if (data.value && !isViewingOwnStore.value) void track(data.value.store.id, 'visit')
 })
-
-watch(
-  () => [data.value?.store.theme_id, data.value?.store.theme_color],
-  () => {
-    if (data.value) applyToRoot(data.value.store)
-  }
-)
-
-onBeforeUnmount(resetRoot)
 
 const runtimeConfig = useRuntimeConfig()
 const baseUrl = runtimeConfig.public.appUrl.replace(/\/$/, '')
@@ -337,6 +325,9 @@ const seoImage = computed(() => absoluteImageUrl(data.value?.store.logo_url))
 const fontHref = computed(() => fontsUrl(theme.value))
 
 useHead({
+  htmlAttrs: {
+    style: themeStyle
+  },
   link: [
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
     { rel: 'stylesheet', href: fontHref },

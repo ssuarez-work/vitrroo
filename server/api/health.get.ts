@@ -15,13 +15,12 @@ export default defineEventHandler(async (event) => {
       uptime_ms: Date.now() - startedAt
     }
   } catch (error) {
+    captureError(error, { scope: 'health:database' })
     setResponseStatus(event, 503)
-    const message = error instanceof Error ? error.message : 'unknown'
     return {
       status: 'degraded',
       timestamp: new Date().toISOString(),
-      database: 'unreachable',
-      error: message
+      database: 'unreachable'
     }
   }
 })

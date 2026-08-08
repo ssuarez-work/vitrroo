@@ -1,7 +1,6 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import type { Database } from '~/types/database.types'
-
-type ServiceClient = ReturnType<typeof serverSupabaseServiceRole<Database>>
+import type { ServiceClient } from '~~/server/utils/serviceClient'
 
 const cancelSubscriptionSafely = async (subscriptionId: string | null): Promise<void> => {
   if (!subscriptionId) return
@@ -13,12 +12,44 @@ const cancelSubscriptionSafely = async (subscriptionId: string | null): Promise<
   }
 }
 
+const STORAGE_BUCKET = 'vitrroo-assets'
+const LIST_PAGE_SIZE = 100
+const REMOVE_CHUNK_SIZE = 100
+
+const listAllFiles = async (admin: ServiceClient, prefix: string): Promise<string[]> => {
+  const paths: string[] = []
+  let offset = 0
+
+  while (true) {
+    const { data } = await admin.storage
+      .from(STORAGE_BUCKET)
+      .list(prefix, { limit: LIST_PAGE_SIZE, offset })
+
+    const entries = data ?? []
+    if (entries.length === 0) break
+
+    for (const entry of entries) {
+      const entryPath = `${prefix}/${entry.name}`
+      if (entry.id === null) {
+        paths.push(...(await listAllFiles(admin, entryPath)))
+      } else {
+        paths.push(entryPath)
+      }
+    }
+
+    if (entries.length < LIST_PAGE_SIZE) break
+    offset += LIST_PAGE_SIZE
+  }
+
+  return paths
+}
+
 const removeStorageFolder = async (admin: ServiceClient, userId: string): Promise<void> => {
   try {
-    const { data: files } = await admin.storage.from('vitrroo-assets').list(userId, { limit: 1000 })
-    if (!files || files.length === 0) return
-    const paths = files.map((file) => `${userId}/${file.name}`)
-    await admin.storage.from('vitrroo-assets').remove(paths)
+    const paths = await listAllFiles(admin, userId)
+    for (let i = 0; i < paths.length; i += REMOVE_CHUNK_SIZE) {
+      await admin.storage.from(STORAGE_BUCKET).remove(paths.slice(i, i + REMOVE_CHUNK_SIZE))
+    }
   } catch (error) {
     captureError(error, { scope: 'user-delete:remove-storage', userId })
   }

@@ -146,16 +146,19 @@ type StoreEventInsert = {
   created_at?: Timestamp
 }
 
+type EmailQueueStatus = 'pending' | 'processing' | 'sent' | 'failed'
+
 type EmailQueueRow = {
   id: number
   store_id: string
   kind: string
   payload: Json
-  status: 'pending' | 'sent' | 'failed'
+  status: EmailQueueStatus
   sent_at: Timestamp | null
   error_message: string | null
   retry_count: number
   next_retry_at: Timestamp | null
+  claimed_at: Timestamp | null
   created_at: Timestamp
 }
 
@@ -164,12 +167,25 @@ type EmailQueueInsert = {
   store_id: string
   kind: string
   payload?: Json
-  status?: 'pending' | 'sent' | 'failed'
+  status?: EmailQueueStatus
   sent_at?: Timestamp | null
   error_message?: string | null
   retry_count?: number
   next_retry_at?: Timestamp | null
+  claimed_at?: Timestamp | null
   created_at?: Timestamp
+}
+
+type StripeEventRow = {
+  id: string
+  type: string
+  received_at: Timestamp
+}
+
+type StripeEventInsert = {
+  id: string
+  type: string
+  received_at?: Timestamp
 }
 
 type ReferralRow = {
@@ -235,6 +251,7 @@ export interface Database {
       email_queue: Table<EmailQueueRow, EmailQueueInsert>
       referrals: Table<ReferralRow, ReferralInsert>
       audit_logs: Table<AuditLogRow, AuditLogInsert>
+      stripe_events: Table<StripeEventRow, StripeEventInsert>
     }
     Views: Record<string, never>
     Functions: {
@@ -281,6 +298,10 @@ export interface Database {
       decrement_variant_stock: {
         Args: { p_variant_id: string }
         Returns: number | null
+      }
+      claim_email_jobs: {
+        Args: { p_limit: number, p_stale_minutes?: number }
+        Returns: { id: number, store_id: string, kind: string, payload: Json, retry_count: number }[]
       }
       purge_old_events: {
         Args: { p_days_to_keep?: number }
