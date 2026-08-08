@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center gap-4 md:gap-6 cursor-pointer btn-press group bg-[var(--store-surface)] border border-black/5 p-3 md:p-4 rounded-[var(--store-card-radius)] shadow-sm relative md:transition-shadow md:hover:shadow-md"
+    class="flex items-center gap-4 md:gap-6 cursor-pointer btn-press hover-lift hover-lift-shadow group bg-[var(--store-surface)] border border-black/5 p-3 md:p-4 rounded-[var(--store-card-radius)] shadow-sm relative"
     @click="$emit('click')"
   >
     <div v-if="product.is_pinned" class="absolute top-2 right-2 z-10 bg-brand-500 text-white rounded-full px-2 py-0.5 text-[10px] font-bold flex items-center gap-1">
@@ -8,12 +8,11 @@
     </div>
 
     <div class="w-24 h-24 md:w-32 md:h-32 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-      <img
+      <FadeInImage
         v-if="coverImage"
         :src="coverImage"
         :alt="product.name"
-        loading="lazy"
-        class="w-full h-full object-cover"
+        class="w-full h-full object-cover hover-zoom"
       />
       <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
         <Icon name="lucide:image" class="w-7 h-7 opacity-50" />

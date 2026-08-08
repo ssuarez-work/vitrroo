@@ -5,6 +5,9 @@
 </template>
 
 <script setup lang="ts">
+import ProductCardGrid from './storefront/ProductCardGrid.vue'
+import ProductCardList from './storefront/ProductCardList.vue'
+import ProductCardOverlay from './storefront/ProductCardOverlay.vue'
 import type { Product } from '~/types'
 import type { ThemeCardVariant } from '~/themes'
 

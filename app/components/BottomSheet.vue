@@ -8,7 +8,11 @@
         aria-modal="true"
         :aria-label="product?.name ?? 'Producto'"
       >
-        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity" @click="close"></div>
+        <div
+          class="absolute inset-0 bg-gray-900/40 backdrop-blur-xs"
+          :style="backdropStyle"
+          @click="close"
+        ></div>
 
         <Transition name="slide-up">
           <div
@@ -16,21 +20,38 @@
             ref="dialogRef"
             tabindex="-1"
             class="relative w-full max-w-md md:max-w-lg lg:max-w-2xl mx-auto shadow-modal flex flex-col max-h-[90vh] md:max-h-[88vh] lg:max-h-[85vh] overflow-hidden outline-none"
-            :style="sheetStyle"
+            :style="[sheetStyle, dragStyle]"
           >
-            <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" @click="close">
+            <div
+              class="w-full flex justify-center pt-4 pb-3 cursor-grab active:cursor-grabbing touch-none"
+              @pointerdown="onPointerDown"
+              @pointermove="onPointerMove"
+              @pointerup="onPointerUp"
+              @pointercancel="onPointerUp"
+              @click="close"
+            >
               <div class="w-12 h-1.5 rounded-full" :style="handleStyle"></div>
             </div>
 
             <div class="overflow-y-auto px-6 md:px-8 lg:px-10 pb-36 md:pb-32 scrollbar-hide">
-              <div :class="['aspect-square overflow-hidden mb-3 relative', mediaClass]" :style="mediaStyle">
-                <img
-                  v-if="currentImage"
-                  :src="currentImage"
-                  :alt="product?.name ?? 'Producto'"
-                  class="w-full h-full object-cover transition-opacity duration-200"
-                />
-                <div v-else class="w-full h-full flex items-center justify-center" :style="{ color: 'var(--store-text-muted)' }">
+              <div
+                :class="['aspect-square overflow-hidden mb-3 relative touch-pan-y', mediaClass]"
+                :style="mediaStyle"
+                @pointerdown="onGalleryPointerDown"
+                @pointerup="onGalleryPointerUp"
+                @pointercancel="onGalleryPointerCancel"
+              >
+                <Transition name="gallery">
+                  <FadeInImage
+                    v-if="currentImage"
+                    :key="currentImage"
+                    :src="currentImage"
+                    :alt="product?.name ?? 'Producto'"
+                    loading="eager"
+                    class="absolute inset-0 w-full h-full object-cover"
+                  />
+                </Transition>
+                <div v-if="!currentImage" class="w-full h-full flex items-center justify-center" :style="{ color: 'var(--store-text-muted)' }">
                   <Icon name="lucide:image" class="w-12 h-12 opacity-50" />
                 </div>
 
@@ -61,7 +82,7 @@
                   v-for="(url, index) in galleryImages"
                   :key="url + index"
                   type="button"
-                  class="h-1.5 rounded-full transition-all"
+                  class="w-6 h-1.5 rounded-full origin-center gallery-dot"
                   :style="dotStyle(index)"
                   :aria-label="`Ir a imagen ${index + 1}`"
                   @click="activeImageIndex = index"
@@ -81,7 +102,7 @@
                     :disabled="isOutOfStock(variant)"
                     :class="optionButtonClass"
                     :style="variantPillStyle(variant)"
-                    @click="selectedVariantId = variant.id"
+                    @click="selectVariant(variant)"
                   >
                     <span>{{ variant.label }}</span>
                     <span v-if="variant.stock_quantity !== null" class="text-xs ml-1.5 opacity-75">
@@ -100,7 +121,7 @@
                     type="button"
                     :class="optionButtonClass"
                     :style="optionPillStyle(opt)"
-                    @click="selectedOption = opt"
+                    @click="selectOption(opt)"
                   >
                     {{ opt }}
                   </button>
@@ -112,12 +133,16 @@
               <button
                 v-if="canOrder"
                 type="button"
-                class="w-full py-4 md:py-5 text-lg md:text-xl font-semibold inline-flex items-center justify-center gap-2 md:gap-3 shadow-wa transition-all active:scale-[0.98]"
+                class="wa-cta btn-press w-full py-4 md:py-5 text-lg md:text-xl font-semibold inline-flex items-center justify-center gap-2 md:gap-3 shadow-wa"
                 :style="ctaStyle"
+                :disabled="isOpeningWhatsApp"
                 @click="sendWhatsApp"
               >
-                <Icon name="ic:baseline-whatsapp" class="w-6 h-6" />
-                Pedir por WhatsApp
+                <Icon
+                  :name="isOpeningWhatsApp ? 'lucide:loader-2' : 'ic:baseline-whatsapp'"
+                  :class="['w-6 h-6', isOpeningWhatsApp ? 'animate-spin' : '']"
+                />
+                {{ isOpeningWhatsApp ? 'Abriendo WhatsApp…' : 'Pedir por WhatsApp' }}
               </button>
               <p v-else class="text-center text-sm" :style="{ color: 'var(--store-text-muted)' }">{{ disabledReason }}</p>
             </div>
@@ -132,8 +157,8 @@
 import { computed, ref, watch } from 'vue'
 import type { Product, ProductVariant, Store } from '~/types'
 
-const WA_GREEN = '#25D366'
-const WA_GREEN_DARK = '#128C7E'
+const OPENING_FEEDBACK_MS = 1400
+const INACTIVE_DOT_SCALE = 0.25
 
 const props = defineProps<{
   modelValue: boolean
@@ -150,10 +175,26 @@ const { fromCents } = usePrice()
 const { buildWhatsAppUrl } = useStorefront()
 const { resolveTheme } = useStoreTheme()
 
+const haptics = useHaptics()
+
 const dialogRef = ref<HTMLElement | null>(null)
 const selectedVariantId = ref<string | null>(null)
 const selectedOption = ref<string | null>(null)
 const activeImageIndex = ref(0)
+const isOpeningWhatsApp = ref(false)
+
+const close = () => emit('update:modelValue', false)
+
+const {
+  progress: dragProgress,
+  dragStyle,
+  reset: resetDrag,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp
+} = useSheetDrag({ sheet: dialogRef, onDismiss: close })
+
+const backdropStyle = computed(() => ({ opacity: 1 - dragProgress.value }))
 
 const theme = computed(() => resolveTheme(props.store ?? null))
 
@@ -223,7 +264,7 @@ const navButtonStyle = computed(() => ({
 const dotStyle = (index: number) => {
   const isActive = index === activeImageIndex.value
   return {
-    width: isActive ? '1.5rem' : '0.375rem',
+    transform: `scaleX(${isActive ? 1 : INACTIVE_DOT_SCALE})`,
     backgroundColor: isActive ? 'var(--store-text)' : 'var(--store-text-muted)'
   }
 }
@@ -248,7 +289,7 @@ const labelStyle = computed(() => ({
   textTransform: theme.value.uppercaseHeadings ? 'uppercase' : 'none'
 }))
 
-const optionButtonClass = 'px-4 py-2.5 text-sm font-medium transition-all duration-200 border btn-press flex items-center'
+const optionButtonClass = 'option-pill px-4 py-2.5 text-sm font-medium border btn-press flex items-center'
 
 const baseOptionStyle = computed(() => ({
   borderRadius: 'var(--store-button-radius)',
@@ -297,10 +338,7 @@ const footerStyle = computed(() => {
 
 const ctaStyle = computed(() => ({
   borderRadius: 'var(--store-button-radius)',
-  backgroundColor: WA_GREEN,
-  color: '#ffffff',
-  fontFamily: 'var(--store-body-font)',
-  '--wa-hover': WA_GREEN_DARK
+  fontFamily: 'var(--store-body-font)'
 }))
 
 const pickFirstAvailableVariant = () => {
@@ -312,13 +350,13 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (!isOpen) return
+    resetDrag()
+    isOpeningWhatsApp.value = false
     selectedOption.value = props.product?.options?.[0] ?? null
     pickFirstAvailableVariant()
     activeImageIndex.value = 0
   }
 )
-
-const close = () => emit('update:modelValue', false)
 
 useModalDismiss(() => props.modelValue, close, dialogRef)
 useBodyScrollLock(() => props.modelValue)
@@ -333,15 +371,38 @@ const nextImage = () => {
   activeImageIndex.value = (activeImageIndex.value + 1) % galleryImages.value.length
 }
 
+const {
+  onPointerDown: onGalleryPointerDown,
+  onPointerUp: onGalleryPointerUp,
+  onPointerCancel: onGalleryPointerCancel
+} = useSwipeNavigation({ onNext: nextImage, onPrevious: previousImage })
+
+const selectVariant = (variant: ProductVariant) => {
+  selectedVariantId.value = variant.id
+  haptics.tap()
+}
+
+const selectOption = (option: string) => {
+  selectedOption.value = option
+  haptics.tap()
+}
+
 const sendWhatsApp = () => {
-  if (!props.store || !props.product) return
+  if (!props.store || !props.product || isOpeningWhatsApp.value) return
   const url = buildWhatsAppUrl(props.store, props.product, {
     variantId: selectedVariantId.value,
     option: selectedOption.value
   })
   if (!url) return
+
+  haptics.confirm()
+  isOpeningWhatsApp.value = true
   emit('whatsapp-click', props.product, selectedVariant.value)
   window.open(url, '_blank')
+
+  setTimeout(() => {
+    isOpeningWhatsApp.value = false
+  }, OPENING_FEEDBACK_MS)
 }
 
 const hexWithAlpha = (hex: string, alpha: number): string => {
@@ -373,5 +434,58 @@ const hexWithAlpha = (hex: string, alpha: number): string => {
 .slide-up-enter-from,
 .slide-up-leave-to {
   transform: translateY(100%);
+}
+
+.gallery-enter-active,
+.gallery-leave-active {
+  transition: opacity 220ms ease;
+}
+.gallery-enter-from,
+.gallery-leave-to {
+  opacity: 0;
+}
+
+.gallery-dot {
+  transition: transform 200ms var(--ease-out), background-color 200ms var(--ease-out);
+}
+
+.option-pill {
+  transition: background-color 200ms var(--ease-out),
+              border-color 200ms var(--ease-out),
+              color 200ms var(--ease-out),
+              box-shadow 200ms var(--ease-out),
+              transform var(--duration-press) var(--ease-out);
+}
+
+.wa-cta {
+  background-color: var(--color-wa);
+  color: #ffffff;
+  transition: background-color 160ms var(--ease-out),
+              transform var(--duration-press) var(--ease-out);
+}
+
+.wa-cta:disabled {
+  cursor: progress;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wa-cta:not(:disabled):hover {
+    background-color: var(--color-wa-dark);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-up-enter-active,
+  .slide-up-leave-active {
+    transition: opacity 200ms ease;
+  }
+  .slide-up-enter-from,
+  .slide-up-leave-to {
+    transform: none;
+    opacity: 0;
+  }
+  .gallery-dot {
+    transition: background-color 200ms ease;
+  }
 }
 </style>

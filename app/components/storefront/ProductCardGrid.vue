@@ -1,17 +1,16 @@
 <template>
-  <div :class="['cursor-pointer btn-press group flex flex-col relative md:transition-transform md:duration-200 md:hover:-translate-y-1', containerClass]" @click="$emit('click')">
+  <div :class="['cursor-pointer btn-press hover-lift group flex flex-col relative', containerClass]" @click="$emit('click')">
     <div v-if="product.is_pinned" class="absolute top-2 left-2 z-10 bg-brand-500 text-white rounded-full px-2 py-0.5 text-[10px] font-bold flex items-center gap-1 shadow-sm">
       <Icon name="lucide:sparkles" class="w-3 h-3" />
       Destacado
     </div>
 
     <div :class="['aspect-square bg-gray-100 relative overflow-hidden', imageWrapperClass]">
-      <img
+      <FadeInImage
         v-if="coverImage"
         :src="coverImage"
         :alt="product.name"
-        loading="lazy"
-        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        class="w-full h-full object-cover hover-zoom"
       />
       <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
         <Icon name="lucide:image" class="w-8 h-8 opacity-50" />

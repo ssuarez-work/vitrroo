@@ -1,7 +1,8 @@
 <template>
-  <SkeletonStorefront v-if="pending" />
+  <Transition name="page-fade" mode="out-in">
+  <SkeletonStorefront v-if="pending" key="loading" />
 
-  <div v-else-if="!data" class="flex flex-col items-center justify-center py-32 px-6 text-center">
+  <div v-else-if="!data" key="missing" class="flex flex-col items-center justify-center py-32 px-6 text-center">
     <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
       <Icon name="lucide:store" class="w-8 h-8 text-gray-400" />
     </div>
@@ -12,7 +13,7 @@
     </NuxtLink>
   </div>
 
-  <div v-else-if="!data.store.is_published" class="flex flex-col items-center justify-center py-32 px-6 text-center">
+  <div v-else-if="!data.store.is_published" key="paused" class="flex flex-col items-center justify-center py-32 px-6 text-center">
     <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-4">
       <Icon name="lucide:pause" class="w-8 h-8 text-yellow-500" />
     </div>
@@ -23,7 +24,7 @@
     </NuxtLink>
   </div>
 
-  <div v-else :class="['pb-10', densityClass]" :style="bodyStyle">
+  <div v-else key="catalog" :class="['pb-10', densityClass]" :style="bodyStyle">
     <StorefrontHeader :store="data.store" :variant="theme.headerVariant" />
 
     <StorefrontSocialsBar
@@ -33,14 +34,18 @@
       :is-dark="isDarkTheme"
     />
 
-    <nav v-if="categoryFilters.length > 1" class="px-5 md:px-8 lg:px-10 mb-5 md:mb-7">
+    <nav
+      v-if="categoryFilters.length > 1"
+      class="sticky top-0 z-30 px-5 md:px-8 lg:px-10 py-3 mb-5 md:mb-7 backdrop-blur-md border-b"
+      :style="stickyNavStyle"
+    >
       <div class="flex gap-2 md:gap-2.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
         <button
           v-for="filter in categoryFilters"
           :key="filter.id"
           type="button"
           :class="categoryButtonClasses(filter.id)"
-          @click="activeCategoryId = filter.id"
+          @click="selectCategory(filter.id)"
         >
           {{ filter.name }}
         </button>
@@ -55,8 +60,10 @@
         </div>
         <div :class="['px-1', gridClasses]">
           <ProductCard
-            v-for="product in featuredProducts"
+            v-for="(product, index) in featuredProducts"
             :key="`featured-${product.id}`"
+            class="stagger-in"
+            :style="staggerStyle(index)"
             :product="product"
             :variant="theme.cardVariant"
             @click="openProduct(product)"
@@ -64,7 +71,7 @@
         </div>
       </section>
 
-      <section v-for="group in visibleGroups" :key="group.id">
+      <section v-for="group in staggeredGroups" :key="`${activeCategoryId}-${group.id}`">
         <h2
           v-if="visibleGroups.length > 1"
           :class="['mb-3 md:mb-5', sectionTitleClass]"
@@ -74,8 +81,10 @@
         </h2>
         <div :class="gridClasses">
           <ProductCard
-            v-for="product in group.products"
+            v-for="(product, index) in group.products"
             :key="product.id"
+            class="stagger-in"
+            :style="staggerStyle(group.offset + index)"
             :product="product"
             :variant="theme.cardVariant"
             @click="openProduct(product)"
@@ -106,6 +115,7 @@
       @whatsapp-click="onWhatsAppClick"
     />
   </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -128,6 +138,7 @@ const slug = computed(() => String(route.params.slug ?? ''))
 
 const { loadBySlug } = useStorefront()
 const { track } = useAnalytics()
+const haptics = useHaptics()
 const { resolveTheme, styleString, fontsUrl } = useStoreTheme()
 const currentUser = useSupabaseUser()
 
@@ -255,8 +266,29 @@ const visibleGroups = computed<ProductGroup[]>(() => {
 
 const hasAnyProduct = computed(() => allGroups.value.some((g) => g.products.length > 0))
 
+const staggeredGroups = computed<Array<ProductGroup & { offset: number }>>(() => {
+  let nextOffset = showFeatured.value ? featuredProducts.value.length : 0
+  return visibleGroups.value.map((group) => {
+    const offset = nextOffset
+    nextOffset += group.products.length
+    return { ...group, offset }
+  })
+})
+
+const stickyNavStyle = computed(() => ({
+  backgroundColor: 'color-mix(in srgb, var(--store-surface) 85%, transparent)',
+  borderColor: isDarkTheme.value ? 'rgba(255,255,255,0.08)' : 'rgba(15,15,16,0.06)'
+}))
+
+const staggerStyle = (index: number) => ({ '--stagger-index': String(index) })
+
+const selectCategory = (id: string) => {
+  activeCategoryId.value = id
+  haptics.tap()
+}
+
 const categoryButtonClasses = (id: string): string => {
-  const base = 'px-4 py-2 rounded-[var(--store-button-radius)] text-sm font-semibold whitespace-nowrap transition-colors border'
+  const base = 'px-4 py-2 rounded-[var(--store-button-radius)] text-sm font-semibold whitespace-nowrap transition-colors border btn-press'
   if (activeCategoryId.value === id) {
     return `${base} bg-[var(--store-text)] text-[var(--store-surface)] border-[var(--store-text)]`
   }
@@ -420,3 +452,14 @@ useHead({
   ]
 })
 </script>
+
+<style scoped>
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}
+</style>

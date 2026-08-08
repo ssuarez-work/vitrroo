@@ -1,14 +1,13 @@
 <template>
   <div
-    class="relative overflow-hidden rounded-[var(--store-card-radius)] cursor-pointer btn-press group aspect-[4/5] bg-gray-200 md:transition-transform md:duration-200 md:hover:-translate-y-1 md:hover:shadow-xl"
+    class="relative overflow-hidden rounded-[var(--store-card-radius)] cursor-pointer btn-press hover-lift hover-lift-shadow group aspect-[4/5] bg-gray-200"
     @click="$emit('click')"
   >
-    <img
+    <FadeInImage
       v-if="coverImage"
       :src="coverImage"
       :alt="product.name"
-      loading="lazy"
-      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+      class="w-full h-full object-cover hover-zoom"
     />
     <div v-else class="w-full h-full flex items-center justify-center text-gray-300">
       <Icon name="lucide:image" class="w-14 h-14 opacity-50" />
