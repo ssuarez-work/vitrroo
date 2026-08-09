@@ -1,5 +1,6 @@
 <template>
   <img
+    ref="image"
     :src="src"
     :alt="alt"
     :loading="loading"
@@ -12,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 interface Props {
   src: string
@@ -26,9 +27,17 @@ const props = withDefaults(defineProps<Props>(), {
   decoding: 'async'
 })
 
-const hasLoaded = ref(false)
+const image = ref<HTMLImageElement | null>(null)
+const hasLoaded = ref(true)
 
-watch(() => props.src, () => {
-  hasLoaded.value = false
+const syncWithElement = () => {
+  hasLoaded.value = image.value?.complete ?? true
+}
+
+onMounted(syncWithElement)
+
+watch(() => props.src, async () => {
+  await nextTick()
+  syncWithElement()
 })
 </script>
