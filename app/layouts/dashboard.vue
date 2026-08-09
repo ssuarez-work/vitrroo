@@ -8,27 +8,27 @@
         <h1 class="text-xl font-bold tracking-tight text-gray-900">Vitrroo<span class="text-brand-500">.</span></h1>
       </div>
       <nav class="flex-1 px-4 space-y-1">
-        <NuxtLink to="/admin" class="sidebar-link" exact-active-class="active">
+        <NuxtLink to="/dashboard" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:layout-dashboard" class="w-5 h-5 icon" />
           Dashboard
         </NuxtLink>
-        <NuxtLink to="/admin/products" class="sidebar-link" exact-active-class="active">
+        <NuxtLink to="/dashboard/products" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:package" class="w-5 h-5 icon" />
           Productos
         </NuxtLink>
-        <NuxtLink to="/admin/categories" class="sidebar-link" exact-active-class="active">
+        <NuxtLink to="/dashboard/categories" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:layers" class="w-5 h-5 icon" />
           Categorías
         </NuxtLink>
-        <NuxtLink to="/admin/settings" class="sidebar-link" exact-active-class="active">
+        <NuxtLink to="/dashboard/settings" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:settings" class="w-5 h-5 icon" />
           Configuración
         </NuxtLink>
-        <NuxtLink to="/admin/billing" class="sidebar-link" exact-active-class="active">
+        <NuxtLink to="/dashboard/billing" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:sparkles" class="w-5 h-5 icon" />
           Plan
         </NuxtLink>
-        <NuxtLink to="/admin/account" class="sidebar-link" exact-active-class="active">
+        <NuxtLink to="/dashboard/account" class="sidebar-link" exact-active-class="active">
           <Icon name="lucide:user" class="w-5 h-5 icon" />
           Mi cuenta
         </NuxtLink>

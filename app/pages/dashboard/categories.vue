@@ -121,7 +121,7 @@
 import { computed, onMounted, ref } from 'vue'
 import type { Category, Store } from '~/types'
 
-definePageMeta({ layout: 'admin', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const { getMyStore } = useSupabaseStore()
 const { listByStore, create, rename, remove, reorder } = useCategories()
@@ -219,6 +219,6 @@ const handleDelete = async (category: Category) => {
   toast.success('Categoría eliminada.')
 }
 
-useHead({ title: 'Categorías | Admin Vitrroo' })
+useHead({ title: 'Categorías · Vitrroo' })
 </script>
 

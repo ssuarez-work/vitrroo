@@ -69,6 +69,9 @@ export default defineNuxtConfig({
         ].join('; ')
       }
     },
+    '/admin': { redirect: '/dashboard' },
+    '/admin/**': { redirect: '/dashboard/**' },
+
     '/api/billing/webhook': {
       headers: {
         'X-Content-Type-Options': 'nosniff'

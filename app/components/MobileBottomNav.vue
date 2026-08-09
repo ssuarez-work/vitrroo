@@ -23,10 +23,10 @@ interface NavItem {
 }
 
 const items: NavItem[] = [
-  { to: '/admin', icon: 'lucide:layout-dashboard', label: 'Inicio' },
-  { to: '/admin/products', icon: 'lucide:package', label: 'Productos' },
-  { to: '/admin/categories', icon: 'lucide:layers', label: 'Categorías' },
-  { to: '/admin/settings', icon: 'lucide:settings', label: 'Ajustes' }
+  { to: '/dashboard', icon: 'lucide:layout-dashboard', label: 'Inicio' },
+  { to: '/dashboard/products', icon: 'lucide:package', label: 'Productos' },
+  { to: '/dashboard/categories', icon: 'lucide:layers', label: 'Categorías' },
+  { to: '/dashboard/settings', icon: 'lucide:settings', label: 'Ajustes' }
 ]
 </script>
 

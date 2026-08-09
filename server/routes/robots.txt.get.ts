@@ -5,6 +5,7 @@ export default defineEventHandler(() => {
   const body = [
     'User-agent: *',
     'Allow: /',
+    'Disallow: /dashboard',
     'Disallow: /admin',
     'Disallow: /api',
     'Disallow: /auth',

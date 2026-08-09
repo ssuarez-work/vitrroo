@@ -18,7 +18,7 @@ const route = useRoute()
 const resolveDestination = (): string => {
   const next = route.query.next
   if (typeof next === 'string' && next.startsWith('/')) return next
-  return '/admin'
+  return '/dashboard'
 }
 
 onMounted(async () => {

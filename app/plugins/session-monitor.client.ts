@@ -5,7 +5,7 @@ export default defineNuxtPlugin(() => {
 
   const handleSignedOut = () => {
     const current = router.currentRoute.value
-    if (!current.path.startsWith('/admin')) return
+    if (!current.path.startsWith('/dashboard')) return
     toast.info('Tu sesión expiró. Inicia sesión de nuevo.')
     navigateTo(`/login?next=${encodeURIComponent(current.fullPath)}`)
   }

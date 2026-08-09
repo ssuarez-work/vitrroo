@@ -7,7 +7,7 @@
       </h4>
       <NuxtLink
         v-if="!unlocked"
-        to="/admin/billing"
+        to="/dashboard/billing"
         class="text-xs font-bold text-brand-600 active:text-brand-700 flex items-center gap-1"
       >
         Desbloquear

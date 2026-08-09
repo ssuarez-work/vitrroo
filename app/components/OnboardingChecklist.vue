@@ -88,7 +88,7 @@ const steps = computed<OnboardingStep[]>(() => {
       description: 'Una imagen cuadrada hace que tu catálogo se vea profesional.',
       icon: 'lucide:image',
       done: hasLogo,
-      action: { to: '/admin/settings', label: 'Subir' }
+      action: { to: '/dashboard/settings', label: 'Subir' }
     },
     {
       id: 'whatsapp',
@@ -96,7 +96,7 @@ const steps = computed<OnboardingStep[]>(() => {
       description: 'Es donde recibirás los pedidos. Sin esto el catálogo no puede vender.',
       icon: 'bi:whatsapp',
       done: hasWhatsApp,
-      action: { to: '/admin/settings', label: 'Configurar' }
+      action: { to: '/dashboard/settings', label: 'Configurar' }
     },
     {
       id: 'product',
@@ -104,7 +104,7 @@ const steps = computed<OnboardingStep[]>(() => {
       description: 'Sube una foto, ponle precio y publícalo.',
       icon: 'lucide:package',
       done: hasProduct,
-      action: { to: '/admin/products', label: 'Crear' }
+      action: { to: '/dashboard/products', label: 'Crear' }
     },
     {
       id: 'share',

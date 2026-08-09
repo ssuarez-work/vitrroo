@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: store.stripe_customer_id,
-    return_url: `${config.public.appUrl}/admin/billing`
+    return_url: `${config.public.appUrl}/dashboard/billing`
   })
 
   return { url: session.url }

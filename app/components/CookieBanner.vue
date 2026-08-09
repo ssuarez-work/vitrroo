@@ -34,9 +34,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { RESERVED_SLUGS } from '~/composables/useSlug'
 
 const STORAGE_KEY = 'vitrroo-cookies-consent'
-const STOREFRONT_RESERVED_PATHS = ['admin', 'login', 'register', 'forgot-password', 'reset-password', 'terms', 'privacy', 'auth']
 
 const route = useRoute()
 const hasInteracted = ref(false)
@@ -46,7 +46,7 @@ const isPublicStorefront = computed(() => {
   const segments = route.path.split('/').filter(Boolean)
   if (segments.length !== 1) return false
   const first = segments[0] ?? ''
-  return first.length > 0 && !STOREFRONT_RESERVED_PATHS.includes(first)
+  return first.length > 0 && !RESERVED_SLUGS.has(first)
 })
 
 const isVisible = computed(() => isMounted.value && !hasInteracted.value && !isPublicStorefront.value)

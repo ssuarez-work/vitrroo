@@ -33,8 +33,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const successUrl = `${config.public.appUrl}/admin/billing?checkout=success`
-  const cancelUrl = `${config.public.appUrl}/admin/billing?checkout=cancelled`
+  const successUrl = `${config.public.appUrl}/dashboard/billing?checkout=success`
+  const cancelUrl = `${config.public.appUrl}/dashboard/billing?checkout=cancelled`
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',

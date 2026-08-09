@@ -206,7 +206,7 @@
 import { computed, onMounted, ref } from 'vue'
 import type { Store } from '~/types'
 
-definePageMeta({ layout: 'admin', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const CONFIRM_WORD = 'ELIMINAR'
 
@@ -364,5 +364,5 @@ const confirmDelete = async () => {
   }
 }
 
-useHead({ title: 'Mi cuenta | Admin Vitrroo' })
+useHead({ title: 'Mi cuenta · Vitrroo' })
 </script>

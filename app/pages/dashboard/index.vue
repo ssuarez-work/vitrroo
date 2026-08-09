@@ -85,7 +85,7 @@
         tone="purple"
         label="Productos Activos"
         :value="activeProducts"
-        link-to="/admin/products"
+        link-to="/dashboard/products"
         link-label="Gestionar catálogo"
       />
     </div>
@@ -163,7 +163,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import type { AnalyticsBucket, Product, Store, StoreStats, TopProduct } from '~/types'
 
-definePageMeta({ layout: 'admin', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 interface PeriodOption {
   days: number
@@ -336,5 +336,5 @@ const downloadCsv = () => {
   URL.revokeObjectURL(url)
 }
 
-useHead({ title: 'Dashboard | Admin Vitrroo' })
+useHead({ title: 'Dashboard · Vitrroo' })
 </script>

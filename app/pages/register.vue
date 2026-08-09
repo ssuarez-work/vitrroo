@@ -122,7 +122,7 @@ const errorMessage = ref('')
 const infoMessage = ref('')
 
 const redirectIfAuthenticated = () => {
-  if (user.value) navigateTo('/admin')
+  if (user.value) navigateTo('/dashboard')
 }
 
 onMounted(redirectIfAuthenticated)

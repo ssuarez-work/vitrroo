@@ -5,7 +5,7 @@ const NON_ALPHANUM = /[^a-z0-9]+/g
 const TRIM_DASHES = /(^-|-$)+/g
 const VALID_SLUG = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/
 
-const RESERVED_SLUGS = new Set([
+export const RESERVED_SLUGS = new Set([
   'admin', 'api', 'app', 'auth', 'blog', 'billing', 'catalog',
   'dashboard', 'docs', 'forgot-password', 'help', 'home', 'index',
   'login', 'logout', 'mail', 'me', 'new', 'pricing', 'privacy',

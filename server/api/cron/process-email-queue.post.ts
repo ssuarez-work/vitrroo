@@ -28,12 +28,12 @@ const buildStoreUrl = (slug: string): string => {
 
 const buildAdminUrl = (): string => {
   const config = useRuntimeConfig()
-  return `${config.public.appUrl}/admin`
+  return `${config.public.appUrl}/dashboard`
 }
 
 const buildBillingUrl = (): string => {
   const config = useRuntimeConfig()
-  return `${config.public.appUrl}/admin/billing`
+  return `${config.public.appUrl}/dashboard/billing`
 }
 
 const renderEmail = (kind: string, store: StoreRow, payload: Record<string, unknown>) => {

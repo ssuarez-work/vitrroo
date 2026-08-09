@@ -15,7 +15,7 @@
 
     <NuxtLink
       v-if="!isPro"
-      to="/admin/billing"
+      to="/dashboard/billing"
       class="ml-2 px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 active:bg-gray-700 transition-colors flex-shrink-0"
     >
       Ver Pro

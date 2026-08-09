@@ -8,7 +8,7 @@
       <p class="text-xs opacity-90">{{ daysText }} restantes para mantener Pro sin perder funciones.</p>
     </div>
     <NuxtLink
-      to="/admin/billing"
+      to="/dashboard/billing"
       class="bg-white text-brand-700 text-xs font-bold px-3 py-2 rounded-lg shadow-sm flex-shrink-0"
     >
       Activar Pro

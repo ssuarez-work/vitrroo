@@ -377,7 +377,7 @@ import type { Category, Product, ProductVariant, Store } from '~/types'
 import type { VariantInput } from '~/composables/useProductVariants'
 import type { ImageInput } from '~/composables/useProductImages'
 
-definePageMeta({ layout: 'admin', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
 const { getMyStore, getMyProducts, reorderProducts } = useSupabaseStore()
@@ -516,7 +516,7 @@ function createEmptyForm(): ProductForm {
 const onNewProductClick = () => {
   if (!canAddProduct.value) {
     toast.error('Alcanzaste el límite de productos del plan Free.')
-    navigateTo('/admin/billing')
+    navigateTo('/dashboard/billing')
     return
   }
   openModal()
@@ -765,6 +765,6 @@ const confirmDelete = async (product: Product) => {
   toast.success('Producto eliminado.')
 }
 
-useHead({ title: 'Productos | Admin Vitrroo' })
+useHead({ title: 'Productos · Vitrroo' })
 </script>
 

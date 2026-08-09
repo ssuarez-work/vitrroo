@@ -195,7 +195,7 @@
 import { computed, onMounted, ref } from 'vue'
 import type { SocialLink, Store } from '~/types'
 
-definePageMeta({ layout: 'admin', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
 const { getMyStore } = useSupabaseStore()
@@ -375,6 +375,6 @@ const saveSettings = async () => {
   toast.success('Configuración guardada.')
 }
 
-useHead({ title: 'Configuración | Admin Vitrroo' })
+useHead({ title: 'Configuración · Vitrroo' })
 </script>
 

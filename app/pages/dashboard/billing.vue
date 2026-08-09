@@ -107,7 +107,7 @@
 import { computed, onMounted, ref } from 'vue'
 import type { Store } from '~/types'
 
-definePageMeta({ layout: 'admin', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 type CheckoutInterval = 'monthly' | 'annual'
 
@@ -256,6 +256,6 @@ const openCustomerPortal = async () => {
   }
 }
 
-useHead({ title: 'Plan | Admin Vitrroo' })
+useHead({ title: 'Plan · Vitrroo' })
 </script>
 
