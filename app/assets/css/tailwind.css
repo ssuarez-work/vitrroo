@@ -183,6 +183,16 @@ body {
   }
 }
 
+.fade-swap-enter-active,
+.fade-swap-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.fade-swap-enter-from,
+.fade-swap-leave-to {
+  opacity: 0;
+}
+
 @keyframes vitrroo-stagger-in {
   from {
     opacity: 0;

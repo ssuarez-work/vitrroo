@@ -84,7 +84,7 @@
                 class="min-w-10 min-h-10 flex items-center justify-center text-gray-400 active:text-gray-900 disabled:opacity-30"
                 :disabled="!canMoveUp(category.id)"
                 aria-label="Subir"
-                @click="moveUp(category.id)"
+                @click="onMoveUp(category.id)"
               >
                 <Icon name="lucide:chevron-up" class="w-5 h-5" />
               </button>
@@ -92,7 +92,7 @@
                 class="min-w-10 min-h-10 flex items-center justify-center text-gray-400 active:text-gray-900 disabled:opacity-30"
                 :disabled="!canMoveDown(category.id)"
                 aria-label="Bajar"
-                @click="moveDown(category.id)"
+                @click="onMoveDown(category.id)"
               >
                 <Icon name="lucide:chevron-down" class="w-5 h-5" />
               </button>
@@ -101,7 +101,7 @@
             <button
               class="min-w-11 min-h-11 flex items-center justify-center text-gray-400 active:text-red-600 active:bg-red-50 rounded-lg transition-colors"
               aria-label="Eliminar"
-              @click="handleDelete(category)"
+              @click="askDelete(category)"
             >
               <Icon name="lucide:trash-2" class="w-4 h-4" />
             </button>
@@ -114,21 +114,33 @@
         <p class="text-gray-500">Aún no creas categorías.</p>
       </div>
     </div>
+
+    <ConfirmDialog
+      :model-value="pendingDelete !== null"
+      title="Eliminar categoría"
+      :message="deleteMessage"
+      confirm-label="Eliminar"
+      :is-busy="isDeleting"
+      @update:model-value="pendingDelete = null"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { Category, Store } from '~/types'
+import type { Category } from '~/types'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
-const { getMyStore } = useSupabaseStore()
+const { store, load: loadStore } = useStoreState()
 const { listByStore, create, rename, remove, reorder } = useCategories()
 const toast = useToast()
+const haptics = useHaptics()
 
-const store = ref<Store | null>(null)
 const categories = ref<Category[]>([])
+const pendingDelete = ref<Category | null>(null)
+const isDeleting = ref(false)
 const isLoading = ref(true)
 const newName = ref('')
 const isCreating = ref(false)
@@ -141,14 +153,37 @@ const canAddCategory = computed(() => {
 
 const persistOrder = async (orderedIds: string[]) => {
   if (!store.value) return
+  const previousOrder = orderBefore.value
   const ok = await reorder(store.value.id, orderedIds)
-  if (!ok) toast.error('No se pudo guardar el nuevo orden.')
+
+  if (!ok) {
+    toast.error('No se pudo guardar el nuevo orden.')
+    return
+  }
+
+  haptics.tap()
+  if (previousOrder.length > 0) {
+    toast.withAction('Orden actualizado.', { label: 'Deshacer', run: () => restoreOrder(previousOrder) })
+  }
+}
+
+const restoreOrder = async (orderedIds: string[]) => {
+  if (!store.value) return
+  const byId = new Map(categories.value.map((category) => [category.id, category]))
+  categories.value = orderedIds.map((id) => byId.get(id)).filter((c): c is Category => Boolean(c))
+  await reorder(store.value.id, orderedIds)
+}
+
+const orderBefore = ref<string[]>([])
+
+const rememberOrder = () => {
+  orderBefore.value = categories.value.map((category) => category.id)
 }
 
 const {
   draggingId,
   overId,
-  onDragStart,
+  onDragStart: startDrag,
   onDragOver,
   onDragLeave,
   onDragEnd,
@@ -158,9 +193,24 @@ const {
   canMoveDown
 } = useDragSort({ items: categories, onReorder: persistOrder })
 
+const onDragStart = (event: DragEvent, id: string) => {
+  rememberOrder()
+  startDrag(event, id)
+}
+
+const onMoveUp = (id: string) => {
+  rememberOrder()
+  moveUp(id)
+}
+
+const onMoveDown = (id: string) => {
+  rememberOrder()
+  moveDown(id)
+}
+
 onMounted(async () => {
-  store.value = await getMyStore()
-  if (store.value) categories.value = await listByStore(store.value.id)
+  const loaded = await loadStore()
+  if (loaded) categories.value = await listByStore(loaded.id)
   isLoading.value = false
 })
 
@@ -194,23 +244,44 @@ const handleCreate = async () => {
   toast.success('Categoría creada.')
 }
 
+const applyName = (categoryId: string, name: string) => {
+  categories.value = categories.value.map((c) => (c.id === categoryId ? { ...c, name } : c))
+}
+
 const handleRename = async (category: Category, value: string) => {
   const trimmed = value.trim()
   if (!trimmed || trimmed === category.name) return
 
+  const previousName = category.name
+  applyName(category.id, trimmed)
+
   const ok = await rename(category.id, trimmed)
   if (!ok) {
+    applyName(category.id, previousName)
     toast.error('No se pudo renombrar la categoría.')
     return
   }
-  categories.value = categories.value.map((c) => (c.id === category.id ? { ...c, name: trimmed } : c))
   toast.success('Categoría renombrada.')
 }
 
-const handleDelete = async (category: Category) => {
-  if (!window.confirm(`¿Eliminar la categoría "${category.name}"? Los productos quedarán sin categoría.`)) return
+const deleteMessage = computed(() => {
+  const name = pendingDelete.value?.name ?? ''
+  return `Los productos de "${name}" quedarán sin categoría. Esta acción no se puede deshacer.`
+})
 
+const askDelete = (category: Category) => {
+  pendingDelete.value = category
+}
+
+const confirmDelete = async () => {
+  const category = pendingDelete.value
+  if (!category) return
+
+  isDeleting.value = true
   const ok = await remove(category.id)
+  isDeleting.value = false
+  pendingDelete.value = null
+
   if (!ok) {
     toast.error('No se pudo eliminar la categoría.')
     return

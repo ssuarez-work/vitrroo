@@ -81,7 +81,7 @@
     <div v-else-if="products.length > 0" class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-[#f0f0f2] overflow-hidden">
       <div class="divide-y divide-[#f0f0f2]">
         <article
-          v-for="product in filteredProducts"
+          v-for="{ product, coverImage } in visibleRows"
           :key="product.id"
           :draggable="true"
           class="p-3 md:p-5 flex items-center gap-3 transition-all"
@@ -96,9 +96,19 @@
             <Icon name="lucide:grip-vertical" class="w-5 h-5" />
           </div>
 
+          <label class="flex items-center pl-1 pr-2 cursor-pointer" @click.stop>
+            <input
+              type="checkbox"
+              class="w-5 h-5 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30 cursor-pointer"
+              :checked="selectedIds.has(product.id)"
+              :aria-label="`Seleccionar ${product.name}`"
+              @change="toggleSelection(product.id)"
+            >
+          </label>
+
           <button class="flex-1 min-w-0 flex items-center gap-3 text-left" @click="openModal(product)">
             <div class="w-16 h-16 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative border border-[#f0f0f2]">
-              <img v-if="coverImageOf(product)" :src="coverImageOf(product) ?? ''" :alt="product.name" class="w-full h-full object-cover" />
+              <img v-if="coverImage" :src="coverImage" :alt="product.name" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <Icon name="lucide:image" class="w-6 h-6 text-gray-400 opacity-50" />
               </div>
@@ -144,7 +154,7 @@
               class="min-w-10 min-h-10 flex items-center justify-center text-gray-400 active:text-gray-900 disabled:opacity-30"
               :disabled="!canMoveUp(product.id)"
               aria-label="Subir"
-              @click="moveUp(product.id)"
+              @click="onMoveUp(product.id)"
             >
               <Icon name="lucide:chevron-up" class="w-5 h-5" />
             </button>
@@ -152,7 +162,7 @@
               class="min-w-10 min-h-10 flex items-center justify-center text-gray-400 active:text-gray-900 disabled:opacity-30"
               :disabled="!canMoveDown(product.id)"
               aria-label="Bajar"
-              @click="moveDown(product.id)"
+              @click="onMoveDown(product.id)"
             >
               <Icon name="lucide:chevron-down" class="w-5 h-5" />
             </button>
@@ -174,6 +184,42 @@
         <Icon name="lucide:plus" class="w-5 h-5" /> Agregar mi primer producto
       </button>
     </div>
+
+    <Transition name="fade-swap">
+      <div
+        v-if="selectionCount > 0"
+        class="fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] md:bottom-6 md:left-64 z-40 px-4"
+      >
+        <div class="max-w-2xl mx-auto bg-gray-900 text-white rounded-2xl shadow-modal px-4 py-3 flex items-center gap-3">
+          <span class="text-sm font-bold flex-shrink-0">{{ selectionCount }}</span>
+          <span class="text-xs text-gray-300 flex-1 min-w-0 truncate">seleccionados</span>
+          <button
+            type="button"
+            :disabled="isBulkRunning"
+            class="px-3 min-h-10 rounded-lg text-xs font-bold bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+            @click="bulkSetActive(true)"
+          >
+            Activar
+          </button>
+          <button
+            type="button"
+            :disabled="isBulkRunning"
+            class="px-3 min-h-10 rounded-lg text-xs font-bold bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50"
+            @click="bulkSetActive(false)"
+          >
+            Pausar
+          </button>
+          <button
+            type="button"
+            class="min-w-10 min-h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+            aria-label="Limpiar selección"
+            @click="clearSelection"
+          >
+            <Icon name="lucide:x" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </Transition>
 
     <AdminSheet v-model="isModalOpen" :title="editingProduct ? 'Editar Producto' : 'Nuevo Producto'">
       <form id="product-form" class="space-y-5" @submit.prevent="saveProduct">
@@ -368,25 +414,37 @@
         </div>
       </template>
     </AdminSheet>
+
+    <ConfirmDialog
+      :model-value="pendingDelete !== null"
+      title="Eliminar producto"
+      :message="deleteMessage"
+      confirm-label="Eliminar"
+      :is-busy="isDeleting"
+      @update:model-value="pendingDelete = null"
+      @confirm="runDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { Category, Product, ProductVariant, Store } from '~/types'
+import type { Category, Product, ProductVariant } from '~/types'
 import type { VariantInput } from '~/composables/useProductVariants'
 import type { ImageInput } from '~/composables/useProductImages'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
-const { getMyStore, getMyProducts, reorderProducts } = useSupabaseStore()
+const { getMyProducts, reorderProducts } = useSupabaseStore()
+const { store, load: loadStore } = useStoreState()
 const { listByStore: listCategories } = useCategories()
 const { replaceAll: replaceVariants } = useProductVariants()
 const { replaceAll: replaceImages } = useProductImages()
 const { removeByUrls } = useImageUpload()
 const { fromCents, toCents } = usePrice()
 const toast = useToast()
+const haptics = useHaptics()
 
 interface VariantDraft {
   label: string
@@ -409,7 +467,6 @@ interface ProductForm {
   custom_wa_message: string
 }
 
-const store = ref<Store | null>(null)
 const products = ref<Product[]>([])
 const categories = ref<Category[]>([])
 const isLoading = ref(true)
@@ -418,6 +475,11 @@ const isModalOpen = ref(false)
 const isSaving = ref(false)
 const editingProduct = ref<Product | null>(null)
 const form = ref<ProductForm>(createEmptyForm())
+
+const selectedIds = ref<Set<string>>(new Set())
+const isBulkRunning = ref(false)
+const pendingDelete = ref<Product | null>(null)
+const isDeleting = ref(false)
 
 const searchQuery = ref('')
 const filterCategoryId = ref<'all' | 'none' | string>('all')
@@ -444,6 +506,50 @@ const filteredProducts = computed(() => {
   })
 })
 
+const visibleRows = computed(() => {
+  return filteredProducts.value.map((product) => ({ product, coverImage: coverImageOf(product) }))
+})
+
+const selectionCount = computed(() => selectedIds.value.size)
+
+const toggleSelection = (productId: string) => {
+  const next = new Set(selectedIds.value)
+  if (next.has(productId)) next.delete(productId)
+  else next.add(productId)
+  selectedIds.value = next
+}
+
+const clearSelection = () => {
+  selectedIds.value = new Set()
+}
+
+const bulkSetActive = async (isActive: boolean) => {
+  const ids = [...selectedIds.value]
+  if (ids.length === 0) return
+
+  isBulkRunning.value = true
+  const previous = products.value
+  products.value = products.value.map((p) => (selectedIds.value.has(p.id) ? { ...p, is_active: isActive } : p))
+
+  const { error } = await supabase.from('products').update({ is_active: isActive }).in('id', ids)
+  isBulkRunning.value = false
+
+  if (error) {
+    products.value = previous
+    toast.error('No pudimos actualizar los productos seleccionados.')
+    return
+  }
+
+  haptics.confirm()
+  clearSelection()
+  toast.success(`${ids.length} ${ids.length === 1 ? 'producto actualizado' : 'productos actualizados'}.`)
+}
+
+const deleteMessage = computed(() => {
+  const name = pendingDelete.value?.name ?? ''
+  return `"${name}" y sus imágenes se eliminarán para siempre. Esta acción no se puede deshacer.`
+})
+
 const clearFilters = () => {
   searchQuery.value = ''
   filterCategoryId.value = 'all'
@@ -467,16 +573,39 @@ const canAddMoreVariants = computed(() => {
 })
 const imagesLimit = computed(() => (limits.value.imagesPerProduct === 'unlimited' ? 10 : limits.value.imagesPerProduct))
 
+const orderBefore = ref<string[]>([])
+
+const rememberOrder = () => {
+  orderBefore.value = products.value.map((product) => product.id)
+}
+
+const restoreOrder = async (orderedIds: string[]) => {
+  if (!store.value) return
+  const byId = new Map(products.value.map((product) => [product.id, product]))
+  products.value = orderedIds.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p))
+  await reorderProducts(store.value.id, orderedIds)
+}
+
 const persistOrder = async (orderedIds: string[]) => {
   if (!store.value) return
+  const previousOrder = orderBefore.value
   const ok = await reorderProducts(store.value.id, orderedIds)
-  if (!ok) toast.error('No se pudo guardar el nuevo orden.')
+
+  if (!ok) {
+    toast.error('No se pudo guardar el nuevo orden.')
+    return
+  }
+
+  haptics.tap()
+  if (previousOrder.length > 0) {
+    toast.withAction('Orden actualizado.', { label: 'Deshacer', run: () => restoreOrder(previousOrder) })
+  }
 }
 
 const {
   draggingId,
   overId,
-  onDragStart,
+  onDragStart: startDrag,
   onDragOver,
   onDragLeave,
   onDragEnd,
@@ -486,12 +615,27 @@ const {
   canMoveDown
 } = useDragSort({ items: products, onReorder: persistOrder })
 
+const onDragStart = (event: DragEvent, id: string) => {
+  rememberOrder()
+  startDrag(event, id)
+}
+
+const onMoveUp = (id: string) => {
+  rememberOrder()
+  moveUp(id)
+}
+
+const onMoveDown = (id: string) => {
+  rememberOrder()
+  moveDown(id)
+}
+
 onMounted(async () => {
-  store.value = await getMyStore()
-  if (store.value) {
+  const loaded = await loadStore()
+  if (loaded) {
     const [productList, categoryList] = await Promise.all([
-      getMyProducts(store.value.id),
-      listCategories(store.value.id)
+      getMyProducts(loaded.id),
+      listCategories(loaded.id)
     ])
     products.value = productList
     categories.value = categoryList
@@ -684,6 +828,10 @@ const saveProduct = async () => {
   closeModal()
 }
 
+const applyPin = (productId: string, isPinned: boolean) => {
+  products.value = products.value.map((p) => (p.id === productId ? { ...p, is_pinned: isPinned } : p))
+}
+
 const togglePin = async (product: Product) => {
   if (!limits.value.canPinProducts) {
     toast.error('Los productos destacados son una función del plan Pro.')
@@ -695,12 +843,14 @@ const togglePin = async (product: Product) => {
   }
 
   const next = !product.is_pinned
+  applyPin(product.id, next)
+  haptics.tap()
+
   const { error } = await supabase.from('products').update({ is_pinned: next }).eq('id', product.id)
   if (error) {
+    applyPin(product.id, !next)
     toast.error('No se pudo actualizar el destacado.')
-    return
   }
-  products.value = products.value.map((p) => (p.id === product.id ? { ...p, is_pinned: next } : p))
 }
 
 const csvCell = (value: unknown): string => {
@@ -749,10 +899,19 @@ const exportCsv = () => {
   toast.success(`Exportados ${filteredProducts.value.length} productos.`)
 }
 
-const confirmDelete = async (product: Product) => {
-  if (!window.confirm(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)) return
+const confirmDelete = (product: Product) => {
+  pendingDelete.value = product
+}
 
+const runDelete = async () => {
+  const product = pendingDelete.value
+  if (!product) return
+
+  isDeleting.value = true
   const { error } = await supabase.from('products').delete().eq('id', product.id)
+  isDeleting.value = false
+  pendingDelete.value = null
+
   if (error) {
     toast.error('No pudimos eliminar el producto.')
     return

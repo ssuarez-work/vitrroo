@@ -1,10 +1,11 @@
 <template>
-  <SkeletonDashboard v-if="isLoading" />
+  <Transition name="fade-swap" mode="out-in">
+    <SkeletonDashboard v-if="isLoading" key="loading" />
 
-  <div v-else-if="store">
+  <div v-else-if="store" key="ready">
     <header class="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Hola, {{ store.name }}</h1>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">{{ greeting }}</h1>
         <p class="text-gray-500 mt-1 text-sm md:text-base">Resumen de los últimos {{ periodLabel }}.</p>
       </div>
       <div class="flex gap-1.5 bg-white border border-[#f0f0f2] rounded-xl p-1">
@@ -32,6 +33,32 @@
       :has-shared-once="hasSharedOnce"
       @dismiss="dismissOnboarding"
     />
+
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-5 md:mb-6">
+      <StatCard
+        icon="bi:whatsapp"
+        tone="green"
+        label="Clics WhatsApp"
+        :value="stats.whatsapp_clicks"
+        :previous-value="previousStats?.whatsapp_clicks ?? null"
+      />
+      <StatCard
+        icon="lucide:eye"
+        tone="blue"
+        label="Visitas"
+        :value="stats.visits"
+        :previous-value="previousStats?.visits ?? null"
+      />
+      <StatCard
+        class="col-span-2 md:col-span-1"
+        icon="lucide:package"
+        tone="purple"
+        label="Productos Activos"
+        :value="activeProducts"
+        link-to="/dashboard/products"
+        link-label="Gestionar catálogo"
+      />
+    </div>
 
     <section class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-[#f0f0f2] overflow-hidden mb-5">
       <div class="p-5 md:p-6 border-b border-[#f0f0f2] flex items-center justify-between gap-3">
@@ -76,31 +103,25 @@
       </div>
     </section>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-5 md:mb-6">
-      <StatCard icon="bi:whatsapp" tone="green" label="Clics WhatsApp" :value="stats.whatsapp_clicks" />
-      <StatCard icon="lucide:eye" tone="blue" label="Visitas" :value="stats.visits" />
-      <StatCard
-        class="col-span-2 md:col-span-1"
-        icon="lucide:package"
-        tone="purple"
-        label="Productos Activos"
-        :value="activeProducts"
-        link-to="/dashboard/products"
-        link-label="Gestionar catálogo"
-      />
-    </div>
-
     <section class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-[#f0f0f2] p-5 md:p-6 mb-5">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-base md:text-lg font-bold text-gray-900">Tendencia diaria</h2>
         <span class="text-xs font-semibold text-gray-500">Conversión {{ conversionRate }}%</span>
       </div>
-      <AnalyticsSparkline :values="visitSeries" />
-      <div class="grid grid-cols-2 gap-4 mt-4 text-xs">
-        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-brand-500"></span>Visitas por día</div>
-        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-300"></span>Clics WhatsApp por día</div>
+      <AnalyticsChart v-if="hasAnyActivity" :buckets="sortedBuckets" />
+      <div v-else class="py-10 text-center">
+        <Icon name="lucide:line-chart" class="w-10 h-10 text-gray-300 mx-auto mb-3" />
+        <p class="text-sm font-semibold text-gray-900">Todavía no hay visitas</p>
+        <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">Comparte tu enlace en tu bio de Instagram o por WhatsApp y aquí verás cómo se mueve tu catálogo.</p>
+        <button
+          type="button"
+          class="mt-4 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold btn-press inline-flex items-center gap-2 min-h-11"
+          @click="shareLink"
+        >
+          <Icon name="lucide:share-2" class="w-4 h-4" />
+          Compartir mi catálogo
+        </button>
       </div>
-      <AnalyticsSparkline class="mt-2" :values="clickSeries" color="rgb(156 163 175)" />
     </section>
 
     <ProFeatureBlock
@@ -138,7 +159,7 @@
     </ProFeatureBlock>
   </div>
 
-  <div v-else class="max-w-md mx-auto text-center py-20">
+  <div v-else key="empty" class="max-w-md mx-auto text-center py-20">
     <div class="w-16 h-16 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-5">
       <Icon name="lucide:store" class="w-8 h-8" />
     </div>
@@ -157,11 +178,12 @@
       Crear mi tienda
     </button>
   </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import type { AnalyticsBucket, Product, Store, StoreStats, TopProduct } from '~/types'
+import type { AnalyticsBucket, Product, StoreStats, TopProduct } from '~/types'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
@@ -171,17 +193,19 @@ interface PeriodOption {
   allowed: boolean
 }
 
-const { getMyStore, getMyProducts } = useSupabaseStore()
-const { getStats, getDailyBuckets, getTopProducts } = useAnalytics()
+const { getMyProducts } = useSupabaseStore()
+const { store, load: loadStore } = useStoreState()
+const { getStatsWithTrend, getDailyBuckets, getTopProducts } = useAnalytics()
 const toast = useToast()
+const user = useSupabaseUser()
 
 const ONBOARDING_DISMISSED_KEY = 'vitrroo-onboarding-dismissed'
 const SHARED_ONCE_KEY = 'vitrroo-shared-once'
 
 const isLoading = ref(true)
-const store = ref<Store | null>(null)
 const products = ref<Product[]>([])
 const stats = ref<StoreStats>({ visits: 0, whatsapp_clicks: 0 })
+const previousStats = ref<StoreStats | null>(null)
 const buckets = ref<AnalyticsBucket[]>([])
 const topProducts = ref<TopProduct[]>([])
 const host = ref('')
@@ -218,6 +242,12 @@ const periodLabel = computed(() => {
   return found?.label ?? `${selectedDays.value} días`
 })
 
+const greeting = computed(() => {
+  const localPart = user.value?.email?.split('@')[0] ?? ''
+  if (!localPart) return '¡Hola de nuevo!'
+  return `Hola, ${localPart.charAt(0).toUpperCase()}${localPart.slice(1)}`
+})
+
 const activeProducts = computed(() => products.value.filter((p) => p.is_active).length)
 const storeUrl = computed(() => (store.value ? `${host.value}/${store.value.slug}` : ''))
 
@@ -225,8 +255,7 @@ const sortedBuckets = computed(() =>
   [...buckets.value].sort((a, b) => a.bucket.localeCompare(b.bucket))
 )
 
-const visitSeries = computed(() => sortedBuckets.value.map((bucket) => bucket.visits))
-const clickSeries = computed(() => sortedBuckets.value.map((bucket) => bucket.whatsapp_clicks))
+const hasAnyActivity = computed(() => stats.value.visits > 0 || stats.value.whatsapp_clicks > 0)
 
 const conversionRate = computed(() => {
   if (stats.value.visits === 0) return '0'
@@ -240,14 +269,14 @@ const periodButtonClasses = (option: PeriodOption): string => {
   return `${base} text-gray-600 active:bg-gray-100`
 }
 
-const loadAnalytics = async () => {
-  if (!store.value) return
+const loadAnalytics = async (storeId: string) => {
   const [statResult, bucketResult, topResult] = await Promise.all([
-    getStats(store.value.id, selectedDays.value),
-    getDailyBuckets(store.value.id, selectedDays.value),
-    limits.value.canSeeTopProducts ? getTopProducts(store.value.id, selectedDays.value, 5) : Promise.resolve<TopProduct[]>([])
+    getStatsWithTrend(storeId, selectedDays.value),
+    getDailyBuckets(storeId, selectedDays.value),
+    limits.value.canSeeTopProducts ? getTopProducts(storeId, selectedDays.value, 5) : Promise.resolve<TopProduct[]>([])
   ])
-  stats.value = statResult
+  stats.value = statResult.current
+  previousStats.value = statResult.previous
   buckets.value = bucketResult
   topProducts.value = topResult
 }
@@ -257,11 +286,14 @@ onMounted(async () => {
   isOnboardingDismissed.value = localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
   hasSharedOnce.value = localStorage.getItem(SHARED_ONCE_KEY) === 'true'
 
-  store.value = await getMyStore()
+  const loaded = await loadStore()
 
-  if (store.value) {
-    products.value = await getMyProducts(store.value.id)
-    await loadAnalytics()
+  if (loaded) {
+    const [productList] = await Promise.all([
+      getMyProducts(loaded.id),
+      loadAnalytics(loaded.id)
+    ])
+    products.value = productList
   }
 
   isLoading.value = false
@@ -287,7 +319,9 @@ const selectPeriod = (days: number) => {
   selectedDays.value = days
 }
 
-watch(selectedDays, loadAnalytics)
+watch(selectedDays, () => {
+  if (store.value) void loadAnalytics(store.value.id)
+})
 
 const copyLink = async () => {
   if (!storeUrl.value) return

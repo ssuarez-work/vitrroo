@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { STORE_THEMES, findThemeById, buildGoogleFontsUrl } from '../app/themes'
+import {
+  STORE_THEMES,
+  FREE_THEMES,
+  PRO_THEMES,
+  THEMES_FREE_FIRST,
+  DEFAULT_THEME_ID,
+  findThemeById,
+  buildGoogleFontsUrl,
+  isThemeFree,
+  resolveAllowedThemeId
+} from '../app/themes'
 
 describe('findThemeById', () => {
   it('returns the default theme when id is null', () => {
@@ -65,5 +75,65 @@ describe('STORE_THEMES catalog', () => {
       expect(theme.background).toMatch(/^#[0-9a-f]{6}$/i)
       expect(theme.surface).toMatch(/^#[0-9a-f]{6}$/i)
     }
+  })
+})
+
+describe('theme tiers', () => {
+  it('marks exactly three themes as free', () => {
+    expect(FREE_THEMES.map((theme) => theme.id).sort()).toEqual(['bazaar', 'bubble', 'soft'])
+  })
+
+  it('splits every theme into exactly one tier', () => {
+    expect(FREE_THEMES.length + PRO_THEMES.length).toBe(STORE_THEMES.length)
+  })
+
+  it('keeps the default theme free so every store can render it', () => {
+    expect(isThemeFree(DEFAULT_THEME_ID)).toBe(true)
+  })
+
+  it('gives every theme a tier', () => {
+    for (const theme of STORE_THEMES) {
+      expect(['free', 'pro']).toContain(theme.tier)
+    }
+  })
+
+  it('treats an unknown id as free because it falls back to the default', () => {
+    expect(isThemeFree('nonexistent-theme')).toBe(true)
+  })
+})
+
+describe('resolveAllowedThemeId', () => {
+  it('keeps a free theme on the free plan', () => {
+    expect(resolveAllowedThemeId('bazaar', false)).toBe('bazaar')
+  })
+
+  it('drops a pro theme on the free plan', () => {
+    expect(resolveAllowedThemeId('luxury', false)).toBeNull()
+  })
+
+  it('keeps a pro theme when pro themes are allowed', () => {
+    expect(resolveAllowedThemeId('luxury', true)).toBe('luxury')
+  })
+
+  it('returns null when no theme is selected', () => {
+    expect(resolveAllowedThemeId(null, true)).toBeNull()
+    expect(resolveAllowedThemeId(undefined, false)).toBeNull()
+  })
+})
+
+describe('THEMES_FREE_FIRST', () => {
+  it('lists every free theme before any pro theme', () => {
+    const firstProIndex = THEMES_FREE_FIRST.findIndex((theme) => theme.tier === 'pro')
+    const lastFreeIndex = THEMES_FREE_FIRST.map((theme) => theme.tier).lastIndexOf('free')
+    expect(lastFreeIndex).toBeLessThan(firstProIndex)
+  })
+
+  it('contains every theme exactly once', () => {
+    expect(THEMES_FREE_FIRST).toHaveLength(STORE_THEMES.length)
+    expect(new Set(THEMES_FREE_FIRST.map((theme) => theme.id)).size).toBe(STORE_THEMES.length)
+  })
+
+  it('opens with the default theme', () => {
+    expect(THEMES_FREE_FIRST[0]?.id).toBe(DEFAULT_THEME_ID)
   })
 })

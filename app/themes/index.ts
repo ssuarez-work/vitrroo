@@ -1,3 +1,4 @@
+export type ThemeTier = 'free' | 'pro'
 export type ThemeLayout = 'grid-2' | 'grid-3' | 'single' | 'list'
 export type ThemeCardVariant = 'soft' | 'flat' | 'sharp' | 'rounded' | 'overlay' | 'list' | 'polaroid' | 'minimal'
 export type ThemeHeaderVariant = 'centered-circle' | 'centered-square' | 'banner-overlay' | 'left-compact' | 'editorial'
@@ -65,6 +66,7 @@ export interface StoreTheme {
   name: string
   description: string
   audience: string
+  tier: ThemeTier
   brandColor: string
   background: string
   surface: string
@@ -86,6 +88,7 @@ export interface StoreTheme {
 export const STORE_THEMES: StoreTheme[] = [
   {
     id: 'soft',
+    tier: 'free',
     name: 'Soft',
     description: 'El look limpio y profesional original.',
     audience: 'Cualquier negocio.',
@@ -108,6 +111,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'editorial',
+    tier: 'pro',
     name: 'Editorial',
     description: 'Tipo revista: serif elegante, una columna, fotos grandes.',
     audience: 'Moda premium, fotografía, lifestyle.',
@@ -130,6 +134,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'brutalist',
+    tier: 'pro',
     name: 'Brutalist',
     description: 'Negro contra blanco, bordes gruesos, sin sombras.',
     audience: 'Streetwear, tatuaje, diseño underground.',
@@ -152,6 +157,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'bubble',
+    tier: 'free',
     name: 'Bubble Pop',
     description: 'Tipografía redonda, esquinas grandes, paleta divertida.',
     audience: 'Kawaii, anime, juguetes, niños.',
@@ -174,6 +180,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'luxury',
+    tier: 'pro',
     name: 'Luxury',
     description: 'Serif minimalista con mucho aire y líneas finas.',
     audience: 'Joyería, perfumería, regalos premium.',
@@ -196,6 +203,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'bazaar',
+    tier: 'free',
     name: 'Bazaar',
     description: 'Grid denso, info compacta, vibe marketplace.',
     audience: 'Comida callejera, abarrotes, productos al por mayor.',
@@ -218,6 +226,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'story',
+    tier: 'pro',
     name: 'Story',
     description: 'Fotos a pantalla completa con texto encima, tipo stories.',
     audience: 'Pastelería, comida gourmet, eventos.',
@@ -240,6 +249,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'list',
+    tier: 'pro',
     name: 'List',
     description: 'Lista vertical con imagen a la izquierda e info a la derecha.',
     audience: 'Restaurantes, menús, servicios.',
@@ -262,6 +272,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'polaroid',
+    tier: 'pro',
     name: 'Polaroid',
     description: 'Fotos con marco blanco grueso abajo, vibe analógico.',
     audience: 'Vintage, manualidades, productos artesanales.',
@@ -284,6 +295,7 @@ export const STORE_THEMES: StoreTheme[] = [
   },
   {
     id: 'boutique',
+    tier: 'pro',
     name: 'Boutique',
     description: 'Grid de 3 columnas con fotos cuadradas y texto mínimo.',
     audience: 'Ropa boutique, accesorios curados, deco minimalista.',
@@ -313,6 +325,24 @@ const DEFAULT_THEME: StoreTheme = STORE_THEMES[0]!
 export const findThemeById = (id: string | null | undefined): StoreTheme => {
   if (!id) return DEFAULT_THEME
   return STORE_THEMES.find((theme) => theme.id === id) ?? DEFAULT_THEME
+}
+
+export const FREE_THEMES = STORE_THEMES.filter((theme) => theme.tier === 'free')
+export const PRO_THEMES = STORE_THEMES.filter((theme) => theme.tier === 'pro')
+
+export const THEMES_FREE_FIRST: StoreTheme[] = [...FREE_THEMES, ...PRO_THEMES]
+
+export const isThemeFree = (id: string | null | undefined): boolean => {
+  return findThemeById(id).tier === 'free'
+}
+
+export const resolveAllowedThemeId = (
+  id: string | null | undefined,
+  allowProThemes: boolean
+): string | null => {
+  if (!id) return null
+  if (allowProThemes) return id
+  return isThemeFree(id) ? id : null
 }
 
 export const buildGoogleFontsUrl = (keys: ThemeFontKey[]): string => {

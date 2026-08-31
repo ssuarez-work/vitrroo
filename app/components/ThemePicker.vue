@@ -4,14 +4,21 @@
       v-for="theme in themes"
       :key="theme.id"
       type="button"
-      :disabled="disabled"
       :class="cardClasses(theme)"
-      @click="onSelect(theme.id)"
+      :aria-label="isLocked(theme) ? `${theme.name} — disponible en Pro` : theme.name"
+      @click="onSelect(theme)"
     >
       <div
-        class="rounded-xl overflow-hidden border border-black/5 mb-3 h-32 p-3 flex flex-col"
+        class="rounded-xl overflow-hidden border border-black/5 mb-3 h-32 p-3 flex flex-col relative"
         :style="previewBackground(theme)"
       >
+        <span
+          v-if="isLocked(theme)"
+          class="absolute top-2 right-2 z-10 flex items-center gap-1 pl-1.5 pr-2 py-0.5 rounded-full bg-gray-900 text-white text-[10px] font-bold shadow-sm"
+        >
+          <Icon name="lucide:lock" class="w-2.5 h-2.5" />
+          Pro
+        </span>
         <div class="flex items-center gap-2 mb-2">
           <div class="w-5 h-5 rounded-full" :style="{ backgroundColor: theme.brandColor }"></div>
           <div
@@ -36,7 +43,7 @@
         <div class="flex items-center justify-between gap-2">
           <p class="text-sm font-bold text-gray-900 truncate">{{ theme.name }}</p>
           <Icon
-            v-if="modelValue === theme.id"
+            v-if="modelValue === theme.id && !isLocked(theme)"
             name="lucide:check-circle-2"
             class="w-4 h-4 text-brand-500 flex-shrink-0"
           />
@@ -48,25 +55,33 @@
 </template>
 
 <script setup lang="ts">
-import { FONT_DEFINITIONS, STORE_THEMES, type StoreTheme } from '~/themes'
+import { FONT_DEFINITIONS, THEMES_FREE_FIRST, type StoreTheme } from '~/themes'
 
 interface Props {
   modelValue: string | null
-  disabled?: boolean
+  canUseProThemes?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  disabled: false
+  canUseProThemes: false
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'locked-select': [theme: StoreTheme]
 }>()
 
-const themes = STORE_THEMES
+const themes = THEMES_FREE_FIRST
+
+const isLocked = (theme: StoreTheme): boolean => {
+  return theme.tier === 'pro' && !props.canUseProThemes
+}
 
 const cardClasses = (theme: StoreTheme): string => {
-  const base = 'p-3 rounded-2xl border-2 bg-white transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed'
+  const base = 'p-3 rounded-2xl border-2 bg-white transition-colors text-left btn-press'
+  if (isLocked(theme)) {
+    return `${base} border-[#f0f0f2] hover:border-gray-900`
+  }
   if (props.modelValue === theme.id) {
     return `${base} border-brand-500 ring-2 ring-brand-500/15`
   }
@@ -140,8 +155,11 @@ const previewItemStyle = (theme: StoreTheme) => {
   return base
 }
 
-const onSelect = (id: string) => {
-  if (props.disabled) return
-  emit('update:modelValue', id)
+const onSelect = (theme: StoreTheme) => {
+  if (isLocked(theme)) {
+    emit('locked-select', theme)
+    return
+  }
+  emit('update:modelValue', theme.id)
 }
 </script>

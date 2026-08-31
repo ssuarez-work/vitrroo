@@ -39,6 +39,24 @@ export const useAnalytics = () => {
     return { visits: Number(row.visits ?? 0), whatsapp_clicks: Number(row.whatsapp_clicks ?? 0) }
   }
 
+  const getStatsWithTrend = async (
+    storeId: string,
+    sinceDays = 30
+  ): Promise<{ current: StoreStats; previous: StoreStats }> => {
+    const [current, spanningBoth] = await Promise.all([
+      getStats(storeId, sinceDays),
+      getStats(storeId, sinceDays * 2)
+    ])
+
+    return {
+      current,
+      previous: {
+        visits: Math.max(0, spanningBoth.visits - current.visits),
+        whatsapp_clicks: Math.max(0, spanningBoth.whatsapp_clicks - current.whatsapp_clicks)
+      }
+    }
+  }
+
   const getDailyBuckets = async (storeId: string, sinceDays = 30): Promise<AnalyticsBucket[]> => {
     const { data, error } = await supabase.rpc('get_store_analytics', {
       p_store_id: storeId,
@@ -76,5 +94,5 @@ export const useAnalytics = () => {
     }))
   }
 
-  return { track, getStats, getDailyBuckets, getTopProducts }
+  return { track, getStats, getStatsWithTrend, getDailyBuckets, getTopProducts }
 }

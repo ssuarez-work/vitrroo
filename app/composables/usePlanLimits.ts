@@ -12,7 +12,8 @@ export interface PlanLimits {
   pinnedProducts: LimitValue
   analyticsDays: LimitValue
   canRemoveBranding: boolean
-  canCustomizeTheme: boolean
+  canUseProThemes: boolean
+  canCustomizeThemeColor: boolean
   canCustomizeWhatsAppMessage: boolean
   canPinProducts: boolean
   canExportAnalytics: boolean
@@ -27,7 +28,8 @@ const FREE_LIMITS: PlanLimits = {
   pinnedProducts: 0,
   analyticsDays: 30,
   canRemoveBranding: false,
-  canCustomizeTheme: false,
+  canUseProThemes: false,
+  canCustomizeThemeColor: false,
   canCustomizeWhatsAppMessage: false,
   canPinProducts: false,
   canExportAnalytics: false,
@@ -42,7 +44,8 @@ const PRO_LIMITS: PlanLimits = {
   pinnedProducts: 3,
   analyticsDays: 365,
   canRemoveBranding: true,
-  canCustomizeTheme: true,
+  canUseProThemes: true,
+  canCustomizeThemeColor: true,
   canCustomizeWhatsAppMessage: true,
   canPinProducts: true,
   canExportAnalytics: true,

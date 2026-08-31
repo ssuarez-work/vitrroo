@@ -92,10 +92,16 @@ export interface TopProduct {
   whatsapp_clicks: number
 }
 
+export interface ToastAction {
+  label: string
+  run: () => void
+}
+
 export interface ToastMessage {
   id: number
   type: 'success' | 'error' | 'info'
   message: string
+  action?: ToastAction
 }
 
 export interface ProductSelection {

@@ -85,6 +85,24 @@
           ></textarea>
         </div>
 
+        <div>
+          <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-1.5">
+            <Icon name="bi:whatsapp" class="w-4 h-4 text-wa" />
+            Número de WhatsApp
+          </label>
+          <PhoneNumberInput v-model="form.whatsapp_number" />
+          <p v-if="phoneError" class="text-xs mt-1.5 text-red-600 font-semibold">{{ phoneError }}</p>
+          <p v-else class="text-xs text-gray-500 mt-1.5">Aquí llegarán los pedidos de tus clientes. Elige tu país y escribe el número sin el código.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Redes sociales</label>
+          <p class="text-xs text-gray-500 mb-3">Aparecerán como íconos en tu catálogo para que tus clientes te sigan en otras plataformas. Pega el enlace o tu usuario.</p>
+          <SocialLinksEditor v-model="form.social_links" />
+        </div>
+
+        <hr class="border-[#f0f0f2]" />
+
         <div class="rounded-2xl border border-[#f0f0f2] bg-white p-4">
           <div class="flex items-start gap-3">
             <button
@@ -107,20 +125,22 @@
           </div>
         </div>
 
-        <ProFeatureBlock title="Tema del catálogo" :unlocked="limits.canCustomizeTheme">
+        <div>
+          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Tema del catálogo</label>
+          <p class="text-xs text-gray-500 mb-3">{{ themeHelperText }}</p>
           <ThemePicker
             v-model="form.theme_id"
-            :disabled="!limits.canCustomizeTheme"
-            class="mb-4"
+            :can-use-pro-themes="limits.canUseProThemes"
+            class="mb-5"
+            @locked-select="onLockedThemeSelect"
           />
 
-          <div class="border-t border-[#f0f0f2] pt-4">
-            <p class="text-xs font-semibold text-gray-900 mb-2">Color personalizado (opcional)</p>
+          <ProFeatureBlock title="Color personalizado" :unlocked="limits.canCustomizeThemeColor">
             <div class="flex items-center gap-3">
               <input
                 v-model="form.theme_color"
                 type="color"
-                :disabled="!limits.canCustomizeTheme"
+                :disabled="!limits.canCustomizeThemeColor"
                 class="w-14 h-12 rounded-xl border border-gray-200 bg-white cursor-pointer disabled:cursor-not-allowed"
               />
               <input
@@ -129,12 +149,12 @@
                 autocapitalize="none"
                 spellcheck="false"
                 maxlength="7"
-                :disabled="!limits.canCustomizeTheme"
+                :disabled="!limits.canCustomizeThemeColor"
                 class="form-input flex-1 font-mono uppercase"
                 placeholder="#22C55E"
               />
               <button
-                v-if="form.theme_color && limits.canCustomizeTheme"
+                v-if="form.theme_color && limits.canCustomizeThemeColor"
                 type="button"
                 class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                 @click="form.theme_color = null"
@@ -143,37 +163,7 @@
               </button>
             </div>
             <p class="text-xs text-gray-500 mt-2">Si lo defines, sustituye el color principal del tema elegido.</p>
-          </div>
-        </ProFeatureBlock>
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Número de WhatsApp</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Icon name="bi:whatsapp" class="text-gray-400 w-5 h-5" />
-            </div>
-            <input
-              v-model="form.whatsapp_number"
-              type="tel"
-              inputmode="tel"
-              autocomplete="tel"
-              enterkeyhint="done"
-              class="form-input pl-11"
-              :class="phoneError ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500' : ''"
-              placeholder="+5215555555555"
-              @blur="form.whatsapp_number = normalizePhone(form.whatsapp_number)"
-            />
-          </div>
-          <p v-if="phoneError" class="text-xs mt-1.5 text-red-600 font-semibold">{{ phoneError }}</p>
-          <p v-else class="text-xs text-gray-500 mt-1.5">Incluye el código de país (ej. +52). Solo dígitos y un signo + al inicio.</p>
-        </div>
-
-        <hr class="border-[#f0f0f2]" />
-
-        <div>
-          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Redes sociales</label>
-          <p class="text-xs text-gray-500 mb-3">Aparecerán como íconos en tu catálogo para que tus clientes te sigan en otras plataformas. Pega el enlace o tu usuario.</p>
-          <SocialLinksEditor v-model="form.social_links" />
+          </ProFeatureBlock>
         </div>
 
         <div class="pt-4 border-t border-[#f0f0f2] sticky bottom-0 -mx-5 md:-mx-8 px-5 md:px-8 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-4 bg-white">
@@ -192,15 +182,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { SocialLink, Store } from '~/types'
+import { FREE_THEMES, STORE_THEMES, resolveAllowedThemeId, type StoreTheme } from '~/themes'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const supabase = useSupabaseClient()
-const { getMyStore } = useSupabaseStore()
+const { store, load: loadStore, patch: patchStore } = useStoreState()
 const { normalize, isValid } = useSlug()
 const toast = useToast()
+const haptics = useHaptics()
 
 interface SettingsForm {
   name: string
@@ -214,7 +206,6 @@ interface SettingsForm {
   social_links: SocialLink[]
 }
 
-const store = ref<Store | null>(null)
 const isLoading = ref(true)
 const isSaving = ref(false)
 
@@ -232,12 +223,21 @@ const form = ref<SettingsForm>({
 
 const { limits } = usePlanLimits(store)
 const { isValidHex } = useThemeColor()
-const { normalize: normalizePhone, isValid: isValidPhone } = usePhoneValidation()
+
+const themeHelperText = computed(() => {
+  if (limits.value.canUseProThemes) return 'Tienes los 10 temas disponibles.'
+  return `Con el plan Free puedes usar ${FREE_THEMES.length} de los ${STORE_THEMES.length} temas.`
+})
+
+const onLockedThemeSelect = (theme: StoreTheme) => {
+  toast.info(`"${theme.name}" está disponible en el plan Pro.`)
+  navigateTo('/dashboard/billing')
+}
 
 const phoneError = computed(() => {
-  const raw = form.value.whatsapp_number.trim()
-  if (!raw) return ''
-  return isValidPhone(raw) ? '' : 'Formato inválido. Usa el código de país y solo dígitos (ej. +5215512345678).'
+  const value = form.value.whatsapp_number.trim()
+  if (!value) return ''
+  return isValidE164(value) ? '' : 'Número incompleto. Revisa que tengas entre 8 y 15 dígitos con el código de país.'
 })
 
 const slugRef = computed({
@@ -303,26 +303,53 @@ const canSave = computed(() => {
   return slugStatus.value === 'available' && form.value.name.trim().length > 0
 })
 
+const buildForm = (data: Store): SettingsForm => ({
+  name: data.name ?? '',
+  slug: data.slug ?? '',
+  description: data.description ?? '',
+  whatsapp_number: data.whatsapp_number ?? '',
+  logo_url: data.logo_url,
+  theme_color: data.theme_color,
+  theme_id: data.theme_id,
+  is_published: data.is_published,
+  social_links: Array.isArray(data.social_links) ? data.social_links : []
+})
+
+const savedSnapshot = ref('')
+
+const hasUnsavedChanges = computed(() => {
+  if (isLoading.value || savedSnapshot.value === '') return false
+  return JSON.stringify(form.value) !== savedSnapshot.value
+})
+
+const markAsSaved = () => {
+  savedSnapshot.value = JSON.stringify(form.value)
+}
+
 onMounted(async () => {
-  const data = await getMyStore()
-  store.value = data
+  const data = await loadStore()
   if (data) {
-    form.value = {
-      name: data.name ?? '',
-      slug: data.slug ?? '',
-      description: data.description ?? '',
-      whatsapp_number: data.whatsapp_number ?? '',
-      logo_url: data.logo_url,
-      theme_color: data.theme_color,
-      theme_id: data.theme_id,
-      is_published: data.is_published,
-      social_links: Array.isArray(data.social_links) ? data.social_links : []
-    }
+    form.value = buildForm(data)
     initialSlug.value = data.slug ?? ''
     excludeStoreId.value = data.id
   }
   isLoading.value = false
+  markAsSaved()
 })
+
+onBeforeRouteLeave(() => {
+  if (!hasUnsavedChanges.value) return true
+  return window.confirm('Tienes cambios sin guardar. ¿Salir de todos modos?')
+})
+
+const warnOnUnload = (event: BeforeUnloadEvent) => {
+  if (!hasUnsavedChanges.value) return
+  event.preventDefault()
+  event.returnValue = ''
+}
+
+onMounted(() => window.addEventListener('beforeunload', warnOnUnload))
+onBeforeUnmount(() => window.removeEventListener('beforeunload', warnOnUnload))
 
 const saveSettings = async () => {
   if (!store.value) return
@@ -333,11 +360,11 @@ const saveSettings = async () => {
     return
   }
 
-  const themeColor = limits.value.canCustomizeTheme
+  const themeColor = limits.value.canCustomizeThemeColor
     ? (form.value.theme_color && isValidHex(form.value.theme_color) ? form.value.theme_color : null)
     : null
 
-  const themeId = limits.value.canCustomizeTheme ? (form.value.theme_id || null) : null
+  const themeId = resolveAllowedThemeId(form.value.theme_id, limits.value.canUseProThemes)
 
   const cleanSocialLinks = form.value.social_links
     .filter((link) => link.value.trim().length > 0)
@@ -351,7 +378,7 @@ const saveSettings = async () => {
       name: form.value.name.trim(),
       slug: cleanSlug,
       description: form.value.description.trim() || null,
-      whatsapp_number: normalizePhone(form.value.whatsapp_number) || null,
+      whatsapp_number: form.value.whatsapp_number.trim() || null,
       logo_url: form.value.logo_url,
       theme_color: themeColor,
       theme_id: themeId,
@@ -372,6 +399,19 @@ const saveSettings = async () => {
 
   form.value.slug = cleanSlug
   initialSlug.value = cleanSlug
+  patchStore({
+    name: form.value.name.trim(),
+    slug: cleanSlug,
+    description: form.value.description.trim() || null,
+    whatsapp_number: form.value.whatsapp_number.trim() || null,
+    logo_url: form.value.logo_url,
+    theme_color: themeColor,
+    theme_id: themeId,
+    is_published: form.value.is_published,
+    social_links: cleanSocialLinks
+  })
+  markAsSaved()
+  haptics.confirm()
   toast.success('Configuración guardada.')
 }
 

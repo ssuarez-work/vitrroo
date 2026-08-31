@@ -6,9 +6,18 @@
       </div>
       <div class="min-w-0">
         <p class="text-xs md:text-sm font-medium text-gray-500 truncate">{{ label }}</p>
-        <h3 class="text-xl md:text-2xl font-bold text-gray-900">{{ formattedValue }}</h3>
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <h3 class="text-xl md:text-2xl font-bold text-gray-900 tabular-nums">{{ formattedValue }}</h3>
+          <span v-if="trend" :class="['text-xs font-bold flex items-center gap-0.5', trend.classes]">
+            <Icon :name="trend.icon" class="w-3 h-3" />
+            {{ trend.label }}
+          </span>
+        </div>
       </div>
     </div>
+
+    <p v-if="trend" class="text-[11px] text-gray-500 mb-2">vs. periodo anterior</p>
+
     <NuxtLink
       v-if="linkTo"
       :to="linkTo"
@@ -21,18 +30,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
 
 interface Props {
   icon: string
   label: string
   value: number
+  previousValue?: number | null
   tone?: 'blue' | 'green' | 'purple'
   linkTo?: string
   linkLabel?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  previousValue: null,
   tone: 'blue',
   linkLabel: 'Ver más'
 })
@@ -43,5 +54,22 @@ const tones = {
   purple: 'bg-purple-50 text-purple-600'
 }
 
-const formattedValue = computed(() => props.value.toLocaleString('es-MX'))
+const { displayed } = useAnimatedNumber(toRef(props, 'value'))
+
+const formattedValue = computed(() => displayed.value.toLocaleString('es-MX'))
+
+const trend = computed(() => {
+  const previous = props.previousValue
+  if (previous === null || previous === 0) return null
+
+  const change = Math.round(((props.value - previous) / previous) * 100)
+  if (change === 0) return null
+
+  const isPositive = change > 0
+  return {
+    label: `${isPositive ? '+' : ''}${change}%`,
+    icon: isPositive ? 'lucide:trending-up' : 'lucide:trending-down',
+    classes: isPositive ? 'text-brand-600' : 'text-red-600'
+  }
+})
 </script>

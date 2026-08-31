@@ -105,7 +105,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { Store } from '~/types'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
@@ -134,11 +133,10 @@ const proBenefits = [
   'Soporte prioritario por WhatsApp'
 ]
 
-const { getMyStore } = useSupabaseStore()
+const { store, load: loadStore } = useStoreState()
 const toast = useToast()
 
 const isLoading = ref(true)
-const store = ref<Store | null>(null)
 const isCheckingOut = ref<CheckoutInterval | null>(null)
 const isOpeningPortal = ref(false)
 
@@ -197,7 +195,7 @@ const checkoutOptions: CheckoutOption[] = [
 ]
 
 onMounted(async () => {
-  store.value = await getMyStore()
+  await loadStore()
   isLoading.value = false
 
   if (typeof window !== 'undefined') {

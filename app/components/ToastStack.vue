@@ -13,6 +13,13 @@
           <Icon :name="toneIcon[toast.type]" class="w-5 h-5 flex-shrink-0" />
           <span class="flex-1">{{ toast.message }}</span>
           <button
+            v-if="toast.action"
+            class="px-3 min-h-9 rounded-lg font-bold underline underline-offset-2 hover:opacity-70 transition-opacity"
+            @click="toast.action.run()"
+          >
+            {{ toast.action.label }}
+          </button>
+          <button
             class="min-w-9 min-h-9 flex items-center justify-center opacity-70 active:opacity-100 transition-opacity"
             aria-label="Cerrar"
             @click="dismiss(toast.id)"

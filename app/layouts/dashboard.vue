@@ -71,19 +71,38 @@
     </main>
 
     <MobileBottomNav />
+
+    <ConfirmDialog
+      v-model="isLogoutOpen"
+      title="Cerrar sesión"
+      message="Tendrás que iniciar sesión de nuevo para volver a tu panel."
+      confirm-label="Cerrar sesión"
+      tone="neutral"
+      :is-busy="isLoggingOut"
+      @confirm="confirmLogout"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 const supabase = useSupabaseClient()
 
 useNoIndex()
 
-const handleLogout = async () => {
-  if (typeof window === 'undefined') return
-  const confirmed = window.confirm('¿Cerrar sesión?')
-  if (!confirmed) return
+const isLogoutOpen = ref(false)
+const isLoggingOut = ref(false)
+
+const handleLogout = () => {
+  isLogoutOpen.value = true
+}
+
+const confirmLogout = async () => {
+  isLoggingOut.value = true
   await supabase.auth.signOut()
+  isLogoutOpen.value = false
+  isLoggingOut.value = false
   navigateTo('/login')
 }
 </script>
